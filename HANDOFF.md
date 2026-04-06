@@ -47,9 +47,9 @@ https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
 **수정은 `claude-custom-agents/skills/`에서만 하면 됩니다.**
 심볼릭 링크로 글로벌 commands에 자동 반영되고, git push로 다른 PC에도 반영됩니다.
 
-### 다른 PC 설치
+### 다른 PC 설치 (복사 붙여넣기용)
 
-`~/.claude/settings.json`에 추가:
+`~/.claude/settings.json`에 아래 전체를 추가하면 **플러그인 + hooks + 자동 업데이트** 한번에 설치됩니다:
 
 ```json
 "enabledPlugins": {
@@ -60,10 +60,53 @@ https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
     "source": {
       "source": "github",
       "repo": "aijunny0604-alt/claude-custom-agents"
-    }
+    },
+    "autoUpdate": true
   }
+},
+"hooks": {
+  "PostToolUse": [
+    {
+      "matcher": "Edit",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] 코드 수정 감지 -> /change-verify auto | /quick-fix | /code-health'" }]
+    },
+    {
+      "matcher": "Write",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] 파일 생성 감지 -> /change-verify auto | /security-quick | /doc-sync'" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] 커밋 완료 -> /pre-deploy production | /change-verify auto | /doc-sync'", "if": "Bash(git commit*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] 푸시 감지 -> /pre-deploy production | /full-test 전체 | /security-team'", "if": "Bash(git push*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] Next.js 빌드 완료 -> /pre-deploy production | /security-quick | /perf-audit'", "if": "Bash(npx next build*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] Vite 빌드 완료 -> /pre-deploy production | /responsive-check | /mobile-audit'", "if": "Bash(npx vite build*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] DB 작업 감지 -> /db-health | /security-quick | /change-verify auto'", "if": "Bash(npx prisma*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] 배포 감지 -> /full-test 전체 | /security-team | /pre-deploy production'", "if": "Bash(*deploy*)" }]
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [{ "type": "command", "command": "echo '[HOOK] npm 패키지 변경 -> /security-quick | /change-verify auto'", "if": "Bash(npm install*)" }]
+    }
+  ]
 }
 ```
+
+> **참고**: 이미 settings.json에 `hooks` 키가 있으면 병합해야 합니다. 중복 키는 마지막 값만 적용됩니다.
 
 ---
 
