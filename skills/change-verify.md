@@ -330,3 +330,9 @@ npx tsc --noEmit  # TypeScript 있을 경우
 7. **3회 반복**: FAIL 시 수정 → 재테스트 최대 3회
 8. **빌드 필수**: 최종 판정 전 빌드 통과 확인
 9. **커버리지 보고**: 체크리스트 실행률 + 통과율 반드시 명시
+10. **Playwright 직접 실행 필수 (★ 최우선)**: 
+    - 서브에이전트(Agent tool)는 Playwright MCP에 접근할 수 없음
+    - 코드 분석은 에이전트에 위임하되, **UI 브라우저 검증(팀5)은 반드시 메인 대화에서 직접 Playwright MCP로 실행**
+    - 프로덕션 URL 또는 로컬 서버에서 실제 페이지를 열어 검증
+    - 최소 검증: 변경된 페이지 navigate → snapshot → console_messages(error=0) → screenshot
+    - **"코드만 읽고 PASS" 금지** — 화면 로드 + 콘솔 에러 확인 증거 필수

@@ -1,0 +1,2 @@
+- [에이전트 추천 규칙](feedback_recommend_agents.md) — 매 응답 끝에 상황 맞는 다음 에이전트 명령어 자동 추천
+- [bkit 리포트 필수](feedback_bkit_report.md) — bkit Feature Usage 리포트 + 추천 명령어 둘 다 매 응답에 포함
