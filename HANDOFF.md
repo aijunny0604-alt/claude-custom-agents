@@ -1,4 +1,4 @@
-# AI 핸드오프 문서 — MOVEAM 커스텀 에이전트 플러그인
+# AI 핸드오프 문서 — J AGENTS 플러그인
 
 > 이 문서는 다른 AI 세션이 이 프로젝트를 이해하기 위한 핸드오프 문서입니다.
 
@@ -53,10 +53,10 @@ https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
 
 ```json
 "enabledPlugins": {
-  "custom-agents@custom-agents-marketplace": true
+  "j-agents@j-agents-marketplace": true
 },
 "extraKnownMarketplaces": {
-  "custom-agents-marketplace": {
+  "j-agents-marketplace": {
     "source": {
       "source": "github",
       "repo": "aijunny0604-alt/claude-custom-agents"
