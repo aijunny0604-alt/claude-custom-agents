@@ -1,0 +1,16 @@
+{
+  "name": "custom-agents-marketplace",
+  "description": "MOVEAM 커스텀 에이전트 마켓플레이스",
+  "owner": {
+    "name": "aijunny0604-alt",
+    "url": "https://github.com/aijunny0604-alt"
+  },
+  "plugins": [
+    {
+      "name": "custom-agents",
+      "source": "./",
+      "description": "MOVEAM 커스텀 QA/보안/테스트 에이전트 팩 (19개)",
+      "version": "1.0.0"
+    }
+  ]
+}
