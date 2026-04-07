@@ -1,17 +1,14 @@
 ---
-name: 상황별 에이전트 추천 규칙
-description: 작업 상황에 맞는 J AGENTS 명령어를 bkit 리포트의 Recommended 줄에 추천
+name: 에이전트 추천은 hooks가 담당
+description: 에이전트 추천은 settings.json hooks로 자동 표시. AI가 별도로 추천 블록 넣지 말 것.
 type: feedback
 ---
 
-bkit 리포트의 💡 Recommended 줄에 현재 상황에 맞는 에이전트를 추천한다.
+에이전트 추천은 hooks가 자동 처리한다. AI가 응답에 별도 추천 블록을 넣지 말 것.
 
-**Why:** 사용자가 어떤 에이전트를 써야 하는지 매번 물어보지 않아도 되게 하기 위함.
+**Why:** 메모리 규칙으로 추천하면 포맷이 불안정하고 빠지거나 깨짐. hooks는 시스템이 100% 실행.
 
 **How to apply:**
-- 코드 수정 후 → `/change-verify auto`, `/flow-check`
-- 배포 후 → `/mobile-audit`, `/responsive-check`
-- 버그 발견 시 → `/quick-fix`
-- 새 기능 시작 → `/app-plan`, `/pdca plan {feature}`
-- 보안 점검 필요 → `/security-quick`
-- 문서 업데이트 필요 → `/doc-sync`
+- PostToolUse hooks → 코드 수정/빌드/커밋 등 상황별 추천 자동 표시
+- SessionEnd hook → 대화 종료 시 J AGENTS 추천 자동 표시
+- AI는 추천 명령어를 별도로 넣지 않아도 됨
