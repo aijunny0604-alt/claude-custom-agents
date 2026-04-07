@@ -151,3 +151,8 @@ Z축 (네비게이션): 순방향 | 뒤로가기 | 새로고침 | 탭 전환
 5. **P0 전체 PASS 필수**: P0 하나라도 FAIL이면 PASS 불가
 6. **PDCA 자동 반복**: 90점 미만 시 수정 → 재실행 최대 3회
 7. **데이터 원복 필수 + 스크린샷 필수**
+8. **Playwright 직접 실행 필수 (★ 최우선)**:
+    - 서브에이전트(Agent tool)는 Playwright MCP에 접근 불가
+    - **모든 UX 시나리오를 메인 대화에서 직접 Playwright MCP로 실행**
+    - navigate → snapshot → click → fill_form → console_messages → screenshot 순서
+    - **"코드만 읽고 PASS" 금지** — 실제 브라우저에서 클릭하고 확인한 증거 필수

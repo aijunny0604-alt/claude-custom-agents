@@ -413,3 +413,8 @@ FAIL 발견 시 영향도 맵을 **역방향으로 추적**:
 8. **Playwright UI 테스트**: 실제 브라우저에서 클릭/입력/검증. playwright-cli 스킬 사용
 9. **화면-API 데이터 일치 검증**: Playwright로 읽은 화면 값 == API 응답 값 확인
 10. **커버리지 보고**: 체크리스트 실행률 + 통과율 반드시 명시
+11. **Playwright 직접 실행 필수 (★ 최우선)**:
+    - 서브에이전트(Agent tool)는 Playwright MCP에 접근 불가
+    - 코드 분석은 에이전트에 위임하되, **UI 브라우저 검증은 반드시 메인 대화에서 직접 Playwright MCP 실행**
+    - 최소: 주요 페이지 navigate → snapshot → console_messages(error=0) → screenshot
+    - **"코드만 읽고 PASS" 금지** — 화면 로드 + 콘솔 에러 확인 증거 필수
