@@ -40,7 +40,7 @@ settings.enabledPlugins['j-agents@j-agents-marketplace'] = true;
 // 마켓플레이스 등록
 if (!settings.extraKnownMarketplaces) settings.extraKnownMarketplaces = {};
 settings.extraKnownMarketplaces['j-agents-marketplace'] = {
-  source: { source: 'github', repo: 'aijunny0604-alt/claude-custom-agents' },
+  source: { source: 'github', repo: 'aijunny0604-alt/j-agents' },
   autoUpdate: true
 };
 
