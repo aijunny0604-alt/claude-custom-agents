@@ -47,6 +47,11 @@ settings.extraKnownMarketplaces['j-agents-marketplace'] = {
 // hooks 등록
 if (!settings.hooks) settings.hooks = {};
 
+// 세션 시작 시 프로젝트 상태 점검
+settings.hooks.UserPromptSubmit = [
+  { hooks: [{ type: 'command', command: 'bash ~/.claude/hooks/session-start.sh' }] }
+];
+
 settings.hooks.SessionEnd = [
   { hooks: [{ type: 'command', command: \"echo '[J AGENTS] 추천: /change-verify auto | /full-test 전체 | /security-quick | /pre-deploy | /help'\" }] }
 ];
@@ -69,6 +74,21 @@ console.log('[+] hooks 설정 완료');
 console.log('[+] autoUpdate 활성화');
 "
 
+# hooks 스크립트 설치
+HOOKS_DIR="$HOME/.claude/hooks"
+mkdir -p "$HOOKS_DIR"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -d "$SCRIPT_DIR/hooks" ]; then
+  cp "$SCRIPT_DIR/hooks"/*.sh "$HOOKS_DIR/" 2>/dev/null
+  chmod +x "$HOOKS_DIR"/*.sh 2>/dev/null
+  echo "[+] hook 스크립트 설치됨"
+else
+  # curl 설치 시 GitHub에서 직접 다운로드
+  curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/hooks/session-start.sh" -o "$HOOKS_DIR/session-start.sh" 2>/dev/null
+  chmod +x "$HOOKS_DIR/session-start.sh" 2>/dev/null
+  echo "[+] hook 스크립트 다운로드됨"
+fi
+
 echo ""
 echo "=============================="
 echo "  설치 완료!"
@@ -76,6 +96,7 @@ echo "=============================="
 echo ""
 echo "  포함 항목:"
 echo "    [v] J AGENTS 플러그인 (22개 에이전트)"
+echo "    [v] SessionStart hook (프로젝트 상태 자동 점검)"
 echo "    [v] PostToolUse hooks (9개 자동 추천)"
 echo "    [v] SessionEnd hook (종료 시 추천)"
 echo "    [v] autoUpdate (자동 업데이트)"
