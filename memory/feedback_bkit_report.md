@@ -1,15 +1,13 @@
 ---
 name: bkit Feature Usage 리포트 필수
-description: 매 응답 끝에 bkit Feature Usage 리포트 + 추천 명령어 둘 다 포함
+description: 매 응답 끝에 bkit Feature Usage 리포트 포함. 추천 명령어는 Recommended 줄에 통합.
 type: feedback
 ---
 
-매 응답 끝에 반드시 아래 2개를 모두 포함해야 한다:
+매 응답 끝에 bkit Feature Usage 리포트를 포함한다.
+추천 명령어는 별도 블록 없이 💡 Recommended 줄에 통합한다.
 
-1. **bkit Feature Usage 리포트** (bkit 플러그인 규칙)
-2. **추천 다음 명령어** (사용자 피드백)
-
-**Why:** 사용자가 bkit 리포트가 안 보인다고 지적. 추천 명령어만 나오고 bkit 리포트가 빠지면 안 됨.
+**Why:** 추천 명령어가 따로 나오면 구분선과 겹쳐서 지저분해 보임.
 
 **How to apply:** 모든 응답 끝에 아래 형식 필수:
 ```
@@ -18,10 +16,8 @@ type: feedback
 ─────────────────────────────────────────────────
 ✅ Used: [사용한 bkit 기능]
 ⏭️ Not Used: [미사용 주요 기능] (이유)
-💡 Recommended: [다음 추천 기능]
+💡 Recommended: /명령어 (설명), /명령어 (설명)
 ─────────────────────────────────────────────────
-
-추천 다음 명령어:
-- `/명령어` — 설명
-- `/명령어` — 설명
 ```
+
+주의: 💡 Recommended 아래에 별도 "추천 다음 명령어:" 블록을 추가하지 말 것.
