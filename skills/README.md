@@ -1,6 +1,6 @@
-# MOVEAM 커스텀 에이전트 플러그인 v1.2.0
+# J AGENTS v1.4.0
 
-Claude Code에서 사용하는 **19개 커스텀 QA/보안/테스트/검증 에이전트** 플러그인입니다.
+Claude Code에서 사용하는 **20개 커스텀 QA/보안/테스트/검증/기획 에이전트** 플러그인입니다.
 
 ---
 
@@ -12,19 +12,20 @@ Claude Code에서 사용하는 **19개 커스텀 QA/보안/테스트/검증 에�
 
 ```json
 "enabledPlugins": {
-  "custom-agents@custom-agents-marketplace": true
+  "j-agents@j-agents-marketplace": true
 },
 "extraKnownMarketplaces": {
-  "custom-agents-marketplace": {
+  "j-agents-marketplace": {
     "source": {
       "source": "github",
       "repo": "aijunny0604-alt/claude-custom-agents"
-    }
+    },
+    "autoUpdate": true
   }
 }
 ```
 
-Claude Code 실행하면 자동으로 19개 에이전트가 설치됩니다.
+Claude Code 실행하면 자동으로 20개 에이전트가 설치됩니다.
 
 ### 방법 2: 수동 설치
 
@@ -37,7 +38,13 @@ rm -rf /tmp/cc
 
 ---
 
-## 에이전트 목록 (19개)
+## 에이전트 목록 (20개)
+
+### 기획
+
+| 명령어 | 설명 |
+|--------|------|
+| `/app-plan` | 새 프로젝트 기획 인터뷰 (기능 중심 질문 → 기술 스택 도출) |
 
 ### 테스트 & QA
 
@@ -92,6 +99,7 @@ rm -rf /tmp/cc
 ## 추천 워크플로우
 
 ```
+새 프로젝트      → /app-plan → 기획 구체화 → 개발 시작
 코드 수정 후     → /change-verify auto → /pre-deploy → 배포
 신규 기능 완료   → /full-test → /security-quick → /pre-deploy → 배포
 정기 점검       → /security-team → /perf-audit → /code-health → /db-health
