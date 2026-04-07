@@ -65,6 +65,9 @@ https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
   }
 },
 "hooks": {
+  "SessionEnd": [
+    { "hooks": [{ "type": "command", "command": "echo '[J AGENTS] 추천: /change-verify auto | /full-test 전체 | /security-quick | /pre-deploy | /help'" }] }
+  ],
   "PostToolUse": [
     {
       "matcher": "Edit",
