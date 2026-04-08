@@ -89,6 +89,27 @@ else
   echo "[+] hook 스크립트 다운로드됨"
 fi
 
+# 메모리 설치 (공통 피드백 규칙)
+echo "[+] 공통 메모리 설치 중..."
+# 모든 기존 프로젝트 메모리 경로에 설치
+for proj_dir in "$HOME/.claude/projects"/*/; do
+  if [ -d "$proj_dir" ]; then
+    MEMORY_DIR="${proj_dir}memory"
+    mkdir -p "$MEMORY_DIR"
+    # feedback 메모리 다운로드
+    curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/memory/feedback_recommend_agents.md" -o "$MEMORY_DIR/feedback_recommend_agents.md" 2>/dev/null
+    curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/memory/feedback_bkit_report.md" -o "$MEMORY_DIR/feedback_bkit_report.md" 2>/dev/null
+    # MEMORY.md 인덱스에 추가 (중복 방지)
+    if [ -f "$MEMORY_DIR/MEMORY.md" ]; then
+      grep -q "feedback_recommend_agents" "$MEMORY_DIR/MEMORY.md" 2>/dev/null || echo "- [에이전트 추천 규칙](feedback_recommend_agents.md) — 매 응답 끝에 상황 맞는 다음 에이전트 명령어 자동 추천" >> "$MEMORY_DIR/MEMORY.md"
+      grep -q "feedback_bkit_report" "$MEMORY_DIR/MEMORY.md" 2>/dev/null || echo "- [bkit 리포트 필수](feedback_bkit_report.md) — bkit Feature Usage 리포트 + 추천 명령어 둘 다 매 응답에 포함" >> "$MEMORY_DIR/MEMORY.md"
+    else
+      curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/memory/MEMORY.md" -o "$MEMORY_DIR/MEMORY.md" 2>/dev/null
+    fi
+  fi
+done
+echo "[+] 메모리 설치 완료"
+
 echo ""
 echo "=============================="
 echo "  설치 완료!"
