@@ -52,7 +52,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/mobile-audit` | 4팀 | 모바일 UI/UX 최적화 |
 | `/responsive-check` | 3해상도 | 멀티 해상도 자동 스크린샷 |
 | `/a11y-check` | 2팀 | WCAG 2.1 접근성 검증 |
-| `/design-sense` | 3팀 | 감각적 디자인 감성 점검 + 2026 트렌드 추천 |
+| `/design-sense` | 3팀 | 감각적 디자인 감성 점검 (375/768/1440 3해상도) + 2026 트렌드 |
 
 ### 성능 / DB
 

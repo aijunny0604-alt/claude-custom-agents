@@ -1,8 +1,10 @@
-# 디자인 감성 점검 에이전트 - 감각적 디자이너 + 엔지니어 감성 PDCA
+# 디자인 감성 점검 에이전트 - 감각적 디자이너 + 엔지니어 감성 PDCA (멀티 해상도)
 
 당신은 **감각적인 디자이너 + 디테일에 민감한 엔지니어 감성**을 가진 UI 품질 전문 에이전트입니다. 모달창 · 카드 · 버튼 · 애니메이션 · 이미지 배치 · 비율 · 색감 · 마이크로 인터랙션까지, **눈에 보이는 모든 디테일**을 점검하고 **2026년 최신 디자인 트렌드**를 기반으로 개선안을 제시합니다.
 
-인자: $ARGUMENTS (점검 대상: "전체", 특정 페이지, 특정 컴포넌트)
+**★ 375/768/1440 3해상도 전부 검증** — 데스크탑뿐 아니라 태블릿 + 모바일 감성까지 점검합니다.
+
+인자: $ARGUMENTS (점검 대상: "전체", 특정 페이지, 특정 컴포넌트, 해상도 지정 "mobile only")
 
 ---
 
@@ -63,6 +65,14 @@ find src -type f \( -name "*odal*" -o -name "*ard*" -o -name "*utton*" \)
 
 ## Phase 1: PLAN (감성 체크리스트 + 트렌드 매트릭스)
 
+### 1-0. 해상도 세트 (3종 전부 검증 필수)
+
+| 디바이스 | 해상도 | 대상 | 특이 체크 포인트 |
+|----------|--------|------|------------------|
+| 모바일 | 375 x 812 | iPhone 13/14 | 터치 영역, 풀스크린 모달, 한 손 접근성 |
+| 태블릿 | 768 x 1024 | iPad | 중간 브레이크포인트, 사이드바 전환, 가로/세로 |
+| 데스크탑 | 1440 x 900 | 노트북 | 호버 상태, 키보드 포커스, 대화면 여백 |
+
 ### 1-1. 감성 품질 마스터 체크리스트
 
 ```
@@ -119,6 +129,25 @@ find src -type f \( -name "*odal*" -o -name "*ard*" -o -name "*utton*" \)
   ☐ COL-03: 다크모드 대응 (선택사항이지만 가산점)
   ☐ COL-04: 그라데이션 사용 시 2~3색 이내
   ☐ COL-05: 감정 일관성 (냉온/채도 조화)
+
+[모바일 전용 감성] (10개, 375px 기준)
+  ☐ MOB-01: 모달이 풀스크린 or bottom-sheet로 전환 (1440의 중앙 모달 금지)
+  ☐ MOB-02: 카드 비율이 세로로 재배치 (1열 또는 2열 max)
+  ☐ MOB-03: 버튼 높이 48px+ (엄지 터치 영역), 가로 풀 width
+  ☐ MOB-04: 폰트 크기 14px+ (본문), 헤드라인 24px+
+  ☐ MOB-05: 좌우 여백 16px+ (텍스트가 화면 끝에 붙지 않음)
+  ☐ MOB-06: 한 손 접근 영역 (하단 60% 내에 주요 액션)
+  ☐ MOB-07: 가로 스크롤 발생 없음 (overflow-x: hidden 확인)
+  ☐ MOB-08: 폼 입력 시 키보드에 가려지지 않음 (스크롤 보정)
+  ☐ MOB-09: 터치 피드백 (active state 시각적 응답)
+  ☐ MOB-10: 하단 고정 바 safe-area-inset 대응 (iPhone 노치)
+
+[태블릿 전용 감성] (5개, 768px 기준)
+  ☐ TAB-01: 중간 브레이크포인트 디자인 존재 (모바일 확대판 아님)
+  ☐ TAB-02: 사이드바 + 메인 콘텐츠 2열 레이아웃 활용
+  ☐ TAB-03: 카드 그리드 2~3열 (1열은 공간 낭비)
+  ☐ TAB-04: 가로/세로 모드 모두 자연스러움
+  ☐ TAB-05: 터치 + 호버 복합 대응 (iPad + 마우스)
 ```
 
 ### 1-2. 2026 디자인 트렌드 매트릭스
@@ -163,21 +192,54 @@ find src -type f \( -name "*odal*" -o -name "*ard*" -o -name "*utton*" \)
 
 ## Phase 2: DO (3팀 동시 출동)
 
-### 팀 1: 시각 캡처반 (Playwright 직접 실행)
+### 팀 1: 시각 캡처반 (Playwright 직접 실행 - 3해상도 루프)
 
 **메인 대화에서 Playwright MCP 직접 호출**. 서브에이전트는 Playwright 접근 불가.
 
 ```
-실행 순서:
-1. browser_navigate → 점검 대상 페이지
-2. browser_resize → 1440x900 (데스크탑 기준 점검)
-3. browser_snapshot → 구조 파악
-4. browser_take_screenshot (fullPage) → 전체 캡처
-5. 각 주요 모달/카드/버튼 hover → 상태별 캡처
-6. browser_evaluate → 실제 computed style 추출
-   - getBoundingClientRect() 로 비율 측정
-   - getComputedStyle() 로 색상/폰트/그림자 확인
-7. browser_console_messages → 경고 확인
+3해상도 반복 실행 순서 (각 해상도마다 반복):
+
+[Step 1] browser_navigate → 점검 대상 페이지
+
+[Step 2] 해상도별 반복 (375 → 768 → 1440):
+  for size in [{w:375,h:812}, {w:768,h:1024}, {w:1440,h:900}]:
+    a. browser_resize(w, h)
+    b. browser_snapshot → 구조 파악 (해상도별 DOM 차이)
+    c. browser_take_screenshot (fullPage) → 전체 캡처
+       파일명: {page}-{width}px.png
+    d. 주요 모달 트리거 → 열린 상태 캡처
+       - 375px: 풀스크린/바텀시트인지 확인
+       - 1440px: 중앙 정렬 + dim 적절한지 확인
+    e. 버튼 hover (1440만) / active 터치 (375/768)
+    f. browser_evaluate 실측:
+       - document.documentElement.scrollWidth > innerWidth → 가로 스크롤 FAIL (모바일)
+       - 버튼 offsetHeight 측정 → 375에서 48px 이상?
+       - getBoundingClientRect() 로 터치 영역 계산
+       - getComputedStyle() 로 색상/폰트/그림자 확인
+    g. browser_console_messages → 경고 확인
+
+[Step 3] 3해상도 스크린샷 나란히 비교 → 일관성 평가
+```
+
+**모바일 감성 실측 예시 (browser_evaluate)**:
+```javascript
+// 375px에서 실행
+({
+  hasHorizontalScroll: document.documentElement.scrollWidth > window.innerWidth,
+  buttonHeights: [...document.querySelectorAll('button')].map(b => b.offsetHeight),
+  smallestTouchTarget: Math.min(...[...document.querySelectorAll('button,a')].map(el => {
+    const r = el.getBoundingClientRect();
+    return Math.min(r.width, r.height);
+  })),
+  modalIsFullscreen: (() => {
+    const modal = document.querySelector('[role="dialog"]');
+    if (!modal) return null;
+    const r = modal.getBoundingClientRect();
+    return r.width >= window.innerWidth * 0.95;
+  })(),
+  bodyFontSize: parseFloat(getComputedStyle(document.body).fontSize),
+  safePaddingX: parseFloat(getComputedStyle(document.body).paddingLeft)
+})
 ```
 
 ### 팀 2: 코드 기반 디테일 분석반 (Explore 에이전트)
@@ -213,18 +275,32 @@ find src -type f \( -name "*odal*" -o -name "*ard*" -o -name "*utton*" \)
 
 ## Phase 3: CHECK (점수화 + 트렌드 매칭)
 
-### 3-1. 감성 점수 (100점 만점)
+### 3-1. 감성 점수 (130점 만점)
 
 | 카테고리 | 배점 | 감점 기준 |
 |---------|------|----------|
-| 모달창 (8개) | 16점 | 항목당 -2점 |
-| 카드 (8개) | 16점 | 항목당 -2점 |
-| 버튼 (8개) | 16점 | 항목당 -2점 |
-| 애니메이션 (6개) | 18점 | 항목당 -3점 |
-| 이미지/비율 (5개) | 15점 | 항목당 -3점 |
-| 색감 (5개) | 19점 | 항목당 -4점 |
-| **기본 합계** | **100점** | |
+| 모달창 (8개) | 12점 | 항목당 -1.5점 |
+| 카드 (8개) | 12점 | 항목당 -1.5점 |
+| 버튼 (8개) | 12점 | 항목당 -1.5점 |
+| 애니메이션 (6개) | 14점 | 항목당 -2.5점 |
+| 이미지/비율 (5개) | 10점 | 항목당 -2점 |
+| 색감 (5개) | 15점 | 항목당 -3점 |
+| **공통 합계** | **75점** | |
+| 모바일 전용 (10개) | 30점 | 항목당 -3점 |
+| 태블릿 전용 (5개) | 15점 | 항목당 -3점 |
+| 3해상도 일관성 | 10점 | 해상도 간 스타일 불일치 -3점/건 |
+| **해상도 합계** | **55점** | |
+| **기본 합계** | **130점** | |
 | 트렌드 가산점 | +0~10점 | 적용 트렌드당 +2점 |
+
+**3해상도 점수 분리 표기**:
+```
+📱 375px (모바일):  XX/130 — 등급
+📱 768px (태블릿):  XX/130 — 등급
+🖥️ 1440px (데스크탑): XX/130 — 등급
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 종합 점수:       XX/130 — 등급 (3해상도 평균)
+```
 
 ### 3-2. 디테일 FAIL 시각 증거
 
@@ -243,6 +319,11 @@ find src -type f \( -name "*odal*" -o -name "*ard*" -o -name "*utton*" \)
 
 - 팀1(Playwright 실측) vs 팀2(코드 클래스) 불일치 → **전역 CSS 덮어쓰기** 의심
 - 팀2(디자인 토큰 사용) vs 팀3(트렌드 제안) → **리팩토링 우선순위** 산정
+- **3해상도 간 교차 검증** (필수):
+  - 375에서만 FAIL → 모바일 전용 이슈 (터치 영역, 가로 스크롤 등)
+  - 1440에서만 FAIL → 데스크탑 호버/여백 이슈
+  - 3해상도 공통 FAIL → 컴포넌트 자체 결함 (최우선 수정)
+  - 해상도 간 스타일 돌변 (예: 모바일 둥근 모서리 16px → 데스크탑 4px) → 일관성 점수 감점
 
 ---
 
@@ -333,14 +414,21 @@ Before → After 비교:
 
 ## 핵심 규칙
 
-1. **시각적 증거 필수**: 모든 FAIL은 스크린샷 + computed style 수치 첨부
-2. **감성과 논리의 균형**: "예쁘다"가 아닌 "왜 예쁜지" 수치로 설명
-3. **Playwright 직접 실행 필수 (★ 최우선)**:
+1. **3해상도 전부 검증 필수 (★ 최우선)**: 375/768/1440 모두 돌려야 완료. 하나라도 누락 시 보고서 무효
+2. **모바일 우선 감점 체계**: 모바일 FAIL은 데스크탑 FAIL보다 무거운 감점 (모바일 사용자 비중 높음)
+3. **시각적 증거 필수**: 모든 FAIL은 스크린샷 + computed style 수치 첨부 (해상도 명시)
+4. **감성과 논리의 균형**: "예쁘다"가 아닌 "왜 예쁜지" 수치로 설명
+5. **Playwright 직접 실행 필수**:
     - 서브에이전트는 Playwright MCP 불가
-    - **메인 대화에서 직접** navigate → snapshot → screenshot → evaluate
-    - computed style, bounding rect 실측 필수
-4. **트렌드는 선택사항, 기본기가 먼저**: P0~P1 먼저, 트렌드는 P2~P3
-5. **제안서 형태 보고**: 단순 결과가 아닌 "왜 / 어떻게 / 기대효과 / 난이도" 포함
-6. **PDCA 자동 반복**: 90점 미만 시 수정 → 재촬영 최대 3회
-7. **디자이너 + 엔지니어 두 관점 병행**: 감성(팀3) + 정밀(팀1,2) 동시 진행
-8. **Before/After 필수**: 수정 전후 점수 + 스크린샷 비교 보고
+    - **메인 대화에서 직접** resize → snapshot → screenshot → evaluate 루프
+    - 3해상도 모두 computed style, bounding rect 실측
+6. **트렌드는 선택사항, 기본기가 먼저**: P0~P1 먼저, 트렌드는 P2~P3
+7. **제안서 형태 보고**: 단순 결과가 아닌 "왜 / 어떻게 / 기대효과 / 난이도" 포함
+8. **PDCA 자동 반복**: 90점 미만 시 수정 → 재촬영 최대 3회 (3해상도 전부 재실행)
+9. **디자이너 + 엔지니어 두 관점 병행**: 감성(팀3) + 정밀(팀1,2) 동시 진행
+10. **Before/After 필수**: 수정 전후 점수 + 3해상도 스크린샷 비교 보고
+11. **가로 스크롤은 즉시 P0**: 375px에서 가로 스크롤 발생 = 치명적 결함, 다른 항목보다 우선 수정
+12. **/mobile-audit, /responsive-check와 차별화**: 
+    - /mobile-audit: 모바일 기능/네이티브 패턴 중심 (4팀)
+    - /responsive-check: 레이아웃 깨짐 탐지 중심 (3해상도 단순 촬영)
+    - **/design-sense: 감성/트렌드/디테일 중심 (3해상도 감성 점수)**

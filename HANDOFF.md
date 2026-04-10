@@ -1,4 +1,4 @@
-# AI 핸드오프 문서 — J AGENTS 플러그인
+# AI 핸드오프 문서 — J AGENTS 플러그인 v1.6.0
 
 > 이 문서는 다른 AI 세션이 이 프로젝트를 이해하기 위한 핸드오프 문서입니다.
 
@@ -6,50 +6,78 @@
 
 ## 이 저장소가 뭔가?
 
-MOVEAM 사용자의 **Claude Code 커스텀 에이전트 19개**를 플러그인으로 패키징한 저장소입니다.
-다른 PC에서 settings.json 등록만 하면 자동 설치됩니다.
+MOVEAM 사용자의 **Claude Code 커스텀 에이전트 24개**를 플러그인으로 패키징한 저장소입니다.
+`install.sh` 한 줄 실행 또는 `settings.json` 등록으로 자동 설치됩니다.
+`autoUpdate: true` 설정으로 세션 시작 시 최신 버전 자동 반영됩니다.
 
 ---
 
 ## 저장소 구조
 
 ```
-claude-custom-agents/
+j-agents/
 ├── .claude-plugin/
-│   ├── marketplace.json    ← 마켓플레이스 등록 정보
-│   └── plugin.json         ← 플러그인 설정 (스킬 목록)
-├── skills/                 ← 19개 커스텀 에이전트 (핵심)
-│   ├── change-verify.md
+│   ├── marketplace.json    ← 마켓플레이스 등록 정보 (v1.6.0)
+│   └── plugin.json         ← 플러그인 설정 (24개 스킬 목록)
+├── skills/                 ← 24개 커스텀 에이전트 (핵심)
+│   ├── flow-check.md        (기능 검증)
 │   ├── full-test.md
-│   ├── security-team.md
-│   ├── ... (19개)
+│   ├── change-verify.md
+│   ├── ux-flow.md
+│   ├── playwright-report.md (★ 신규 v1.6.0)
+│   ├── security-team.md     (보안)
+│   ├── security-quick.md
+│   ├── design-sense.md      (★ 신규 v1.6.0, UI/UX)
+│   ├── design-review.md
+│   ├── mobile-audit.md
+│   ├── responsive-check.md
+│   ├── a11y-check.md
+│   ├── perf-audit.md        (성능/DB)
+│   ├── db-health.md
+│   ├── code-health.md       (코드 품질)
+│   ├── pre-deploy.md        (배포/버그)
+│   ├── quick-fix.md
+│   ├── doc-sync.md          (문서)
+│   ├── doc-organize.md
+│   ├── app-plan.md          (기획)
+│   ├── check-pos.md         (기타)
+│   ├── update.md
+│   ├── help.md
 │   └── README.md
+├── hooks/
+│   └── session-start.sh    ← 세션 시작 시 프로젝트 상태 점검 + 메모리/전역 CLAUDE.md 자동 설치
+├── memory/                 ← 공통 피드백 메모리 (에이전트 추천 규칙 등)
+├── global/
+│   └── CLAUDE.md           ← 전역 강제 규칙 (모든 PC 동기화)
+├── install.sh              ← 원클릭 설치 (Windows/Mac/Linux)
 ├── HANDOFF.md              ← 이 파일
-└── README.md (없음, skills/README.md가 메인)
+└── README.md               ← 사용자용 메인 문서
 ```
 
 ---
 
 ## 핵심 아키텍처
 
-### 심볼릭 링크 구조 (현재 PC)
+### 플러그인 자동 동기화 구조
 
 ```
-C:\Users\MOVEAM_PC\.claude\commands\  (심볼릭 링크)
-          ↓ 연결
-C:\Users\MOVEAM_PC\claude-custom-agents\skills\  (원본)
-          ↓ git push
-https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
-          ↓ 플러그인 자동 다운로드
-다른 PC의 Claude Code
+~/.claude/settings.json  (enabledPlugins + extraKnownMarketplaces)
+          ↓ autoUpdate: true
+https://github.com/aijunny0604-alt/j-agents  (원격 master)
+          ↓ 세션 시작 시 자동 pull
+Claude Code 커맨드에 즉시 반영
 ```
 
-**수정은 `claude-custom-agents/skills/`에서만 하면 됩니다.**
-심볼릭 링크로 글로벌 commands에 자동 반영되고, git push로 다른 PC에도 반영됩니다.
+**수정은 로컬 `j-agents/skills/`에서 편집 → git push.**
+다른 PC는 세션 시작 시 `autoUpdate`로 최신 버전을 받아옵니다.
 
-### 다른 PC 설치 (복사 붙여넣기용)
+### 다른 PC 설치 (원클릭)
 
-`~/.claude/settings.json`에 아래 전체를 추가하면 **플러그인 + hooks + 자동 업데이트** 한번에 설치됩니다:
+```bash
+curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/install.sh | bash
+```
+
+또는 `~/.claude/settings.json`에 아래 전체를 추가:
 
 ```json
 "enabledPlugins": {
@@ -59,7 +87,7 @@ https://github.com/aijunny0604-alt/claude-custom-agents  (원격)
   "j-agents-marketplace": {
     "source": {
       "source": "github",
-      "repo": "aijunny0604-alt/claude-custom-agents"
+      "repo": "aijunny0604-alt/j-agents"
     },
     "autoUpdate": true
   }
@@ -147,20 +175,24 @@ bkit 플러그인 (외부)          → /pdca, /code-review 등 PDCA 프레임�
 ### 기존 에이전트 수정
 
 ```bash
-# 1. 파일 수정 (심볼릭 링크라 글로벌에 자동 반영)
-cd C:\Users\MOVEAM_PC\claude-custom-agents
+cd C:/Users/ROSSA/j-agents
 # skills/change-verify.md 등 수정
-
-# 2. GitHub에 push
 git add -A && git commit -m "update: 설명" && git push
 ```
 
-### 새 에이전트 추가
+다른 PC는 다음 세션 시작 시 autoUpdate로 자동 반영됩니다.
+
+### 새 에이전트 추가 (체크리스트)
 
 ```bash
-# 1. skills/ 폴더에 새 .md 파일 생성
+# 1. skills/ 폴더에 새 .md 파일 생성 (예: skills/new-agent.md)
 # 2. .claude-plugin/plugin.json의 skills 배열에 경로 추가
-# 3. git push
+# 3. .claude-plugin/marketplace.json version bump
+# 4. skills/README.md에 에이전트 추가
+# 5. skills/help.md에 에이전트 추가
+# 6. README.md 에이전트 개수 + 카테고리 업데이트
+# 7. HANDOFF.md 버전 히스토리 추가
+# 8. git commit + push
 ```
 
 ### 에이전트 삭제
@@ -168,7 +200,8 @@ git add -A && git commit -m "update: 설명" && git push
 ```bash
 # 1. skills/ 폴더에서 .md 파일 삭제
 # 2. .claude-plugin/plugin.json의 skills 배열에서 제거
-# 3. git push
+# 3. README.md / skills/README.md / help.md 동기화
+# 4. git push
 ```
 
 ---
@@ -176,10 +209,12 @@ git add -A && git commit -m "update: 설명" && git push
 ## 주의사항
 
 1. **파일명 = 명령어명**: `change-verify.md` → `/change-verify`로 호출
-2. **심볼릭 링크 주의**: `~/.claude/commands/`는 심볼릭 링크임. 이 폴더를 삭제하면 원본은 유지되지만 링크가 끊김
-3. **bkit과 이름 충돌 금지**: bkit 스킬 이름과 겹치면 안 됨
-4. **plugin.json 동기화**: 파일 추가/삭제 시 반드시 plugin.json도 업데이트
+2. **bkit과 이름 충돌 금지**: bkit 스킬 이름과 겹치면 안 됨
+3. **plugin.json 동기화 필수**: 파일 추가/삭제 시 반드시 plugin.json도 업데이트
+4. **문서 3종 동기화**: README.md / skills/README.md / skills/help.md 함께 업데이트
 5. **인자 전달**: `$ARGUMENTS`로 사용자 인자를 받음 (예: `/full-test 예약 기능`)
+6. **Playwright 직접 실행**: 서브에이전트는 Playwright MCP 접근 불가. 반드시 메인 대화에서 실행
+7. **CRLF 경고 무시**: Windows에서 git 커밋 시 CRLF 경고는 정상 (core.autocrlf 설정)
 
 ---
 
@@ -199,3 +234,7 @@ git add -A && git commit -m "update: 설명" && git push
 |------|------|------|
 | 1.0.0 | 2026-04-06 | 플러그인 초기 생성, 19개 에이전트 |
 | 1.2.0 | 2026-04-06 | 파일명 원복, 심볼릭 링크 구조 확립 |
+| 1.3.0 | 2026-04-06 | 레포명 claude-custom-agents → j-agents |
+| 1.4.0 | 2026-04-07 | SessionStart hook 추가 - 세션 시작 시 프로젝트 상태 자동 점검 |
+| 1.5.0 | 2026-04-08 | Playwright 필수 + flow-check + 공통 메모리 (총 22개) |
+| 1.6.0 | 2026-04-10 | /design-sense + /playwright-report 추가 (총 24개), 전역 CLAUDE.md 자동 설치, install.sh Windows 호환성 |
