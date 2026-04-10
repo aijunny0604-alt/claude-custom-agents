@@ -141,6 +141,19 @@ else
   echo "[+] hook 스크립트 다운로드됨 (GitHub)"
 fi
 
+# ── 전역 CLAUDE.md 설치 (모든 세션 강제 규칙) ──
+if [ ! -f "$CLAUDE_DIR/CLAUDE.md" ]; then
+  if [ -f "$SCRIPT_DIR/global/CLAUDE.md" ]; then
+    cp "$SCRIPT_DIR/global/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+    echo "[+] 전역 CLAUDE.md 설치됨 (로컬)"
+  else
+    curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/global/CLAUDE.md" -o "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null
+    echo "[+] 전역 CLAUDE.md 다운로드됨 (GitHub)"
+  fi
+else
+  echo "[=] 전역 CLAUDE.md 이미 존재 (건너뜀 - 사용자 커스터마이즈 보호)"
+fi
+
 # ── 메모리 설치 (공통 피드백 규칙) ──
 echo "[+] 공통 메모리 설치 중..."
 PROJECTS_DIR="$CLAUDE_DIR/projects"
@@ -169,6 +182,7 @@ echo ""
 echo "── 설치 검증 ──"
 PASS=true
 [ -f "$SETTINGS_FILE" ] && echo "  ✅ settings.json" || { echo "  ❌ settings.json 없음"; PASS=false; }
+[ -f "$CLAUDE_DIR/CLAUDE.md" ] && echo "  ✅ 전역 CLAUDE.md" || { echo "  ❌ 전역 CLAUDE.md 없음"; PASS=false; }
 [ -f "$CLAUDE_DIR/hooks/session-start.sh" ] && echo "  ✅ session-start.sh" || { echo "  ❌ session-start.sh 없음"; PASS=false; }
 grep -q "j-agents" "$SETTINGS_FILE" 2>/dev/null && echo "  ✅ 플러그인 등록됨" || { echo "  ❌ 플러그인 미등록"; PASS=false; }
 grep -q "PostToolUse" "$SETTINGS_FILE" 2>/dev/null && echo "  ✅ hooks 등록됨" || { echo "  ❌ hooks 미등록"; PASS=false; }

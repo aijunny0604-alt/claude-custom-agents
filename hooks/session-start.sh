@@ -1,9 +1,16 @@
 #!/bin/bash
-# J-AGENTS 세션 시작 Hook - 프로젝트 상태 자동 점검 + 메모리 자동 설치
+# J-AGENTS 세션 시작 Hook - 프로젝트 상태 자동 점검 + 메모리/전역 규칙 자동 설치
 # SessionStart > UserPromptSubmit 에서 실행
 
-# 현재 프로젝트의 메모리 경로에 피드백 규칙 자동 설치
 CLAUDE_DIR="$HOME/.claude"
+
+# 전역 CLAUDE.md 자동 설치 (모든 세션에 강제 규칙 주입)
+# 이미 존재하면 건드리지 않음 (사용자 커스터마이즈 보호)
+if [ ! -f "$CLAUDE_DIR/CLAUDE.md" ]; then
+  curl -sSL "https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/global/CLAUDE.md" -o "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null
+fi
+
+# 현재 프로젝트의 메모리 경로에 피드백 규칙 자동 설치
 for proj_dir in "$CLAUDE_DIR/projects"/*/; do
   if [ -d "$proj_dir" ]; then
     MEM_DIR="${proj_dir}memory"
