@@ -20,6 +20,8 @@
 | `/pre-deploy` | 배포 전 체크 | ✅ | 1인 | 영향도맵+체크리스트19개 | 빌드+타입+DB+환경변수 검증 |
 | `/quick-fix` | 빠른 버그 수정 | ✅ | 1인 | 경량 영향도+체크리스트 | 원인 추적→수정→검증 자동화 |
 | `/design-review` | 구조/디자인 리뷰 | ✅ | 3팀 | 영향도맵+아이디어도출+로직검사 | 구조 간편성 + 대안 제안 + 시나리오 |
+| `/design-sense` | 디자인 감성 점검 | ✅ | 3팀 | 감성체크리스트40개+2026트렌드+Playwright | 모달/카드/버튼/애니메이션/색감/비율 + 트렌드 추천 |
+| `/playwright-report` | Playwright+보고서 | ✅ | 1인 | 작업히스토리+5Why+제안서 | Playwright 검증 + PDCA 보고서 + 제안/건의/의견 |
 | `/doc-sync` | 문서 동기화 | ✅ | 2팀 | 문서영향도맵+체크리스트15개 | 코드 변경 → 문서 자동 최신화 |
 | `/doc-organize` | 문서 분류/정리 | ✅ | 2팀 | 분류맵+가독성체크리스트 | CLAUDE.md 분할 + 전문분야별 체계화 |
 | `/check-pos` | POS 점검 | ✅ | 1인 | 영향도맵+시나리오+체크리스트 | POS Calculator 앱 전용 |
@@ -38,9 +40,9 @@
 Plan(계획) → Do(실행) → Check(분석) → Act(수정) → 90점 이상까지 자동 반복
 
 ### 카테고리별 추천
-- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify`
+- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify` → `/playwright-report`
 - **보안**: `/security-quick` → `/security-team`
-- **UI/UX**: `/mobile-audit` → `/responsive-check` → `/a11y-check`
+- **UI/UX**: `/design-sense` → `/mobile-audit` → `/responsive-check` → `/a11y-check`
 - **성능**: `/perf-audit` → `/db-health`
 - **코드 관리**: `/code-health` → `/design-review`
 - **문서 관리**: `/doc-sync` → `/doc-organize`

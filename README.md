@@ -1,6 +1,6 @@
-# J-AGENTS v1.5.0
+# J-AGENTS v1.6.0
 
-Claude Code 전용 **22개 QA/보안/테스트/검증/기획 에이전트 플러그인**
+Claude Code 전용 **24개 QA/보안/테스트/검증/기획/디자인 에이전트 플러그인**
 
 ---
 
@@ -18,7 +18,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 | 항목 | 내용 |
 |------|------|
-| 플러그인 | 22개 스킬 자동 로드 |
+| 플러그인 | 24개 스킬 자동 로드 |
 | Hooks | SessionStart (프로젝트 상태 점검) + PostToolUse (추천) + SessionEnd |
 | 메모리 | 에이전트 추천 규칙 + bkit 리포트 규칙 |
 | **전역 CLAUDE.md** | `global/CLAUDE.md` → `~/.claude/CLAUDE.md` 자동 설치 (모든 세션 강제 규칙) |
@@ -26,7 +26,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 ---
 
-## 스킬 목록 (22개)
+## 스킬 목록 (24개)
 
 ### 기능 검증
 
@@ -36,6 +36,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/full-test` | 4팀 | 로컬+프로덕션 API 통합 테스트 |
 | `/change-verify` | 4팀 | 수정 후 정밀 검증 (영향도 역추적) |
 | `/ux-flow` | 2팀 | Playwright 사용자 흐름 E2E |
+| `/playwright-report` | 1인 | Playwright 검증 + PDCA 보고서 + 제안서/건의/의견 |
 
 ### 보안
 
@@ -51,6 +52,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/mobile-audit` | 4팀 | 모바일 UI/UX 최적화 |
 | `/responsive-check` | 3해상도 | 멀티 해상도 자동 스크린샷 |
 | `/a11y-check` | 2팀 | WCAG 2.1 접근성 검증 |
+| `/design-sense` | 3팀 | 감각적 디자인 감성 점검 + 2026 트렌드 추천 |
 
 ### 성능 / DB
 
@@ -90,9 +92,9 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 | 상황 | 추천 순서 |
 |------|----------|
-| 기능 검증 | `/flow-check` → `/full-test` → `/change-verify` |
+| 기능 검증 | `/flow-check` → `/full-test` → `/change-verify` → `/playwright-report` |
 | 보안 | `/security-quick` → `/security-team` |
-| UI/UX | `/mobile-audit` → `/responsive-check` → `/a11y-check` |
+| UI/UX | `/design-sense` → `/mobile-audit` → `/responsive-check` → `/a11y-check` |
 | 성능 | `/perf-audit` → `/db-health` |
 | 코드 관리 | `/code-health` |
 | 배포 | `/pre-deploy` |
