@@ -21,6 +21,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | 플러그인 | 22개 스킬 자동 로드 |
 | Hooks | SessionStart (프로젝트 상태 점검) + PostToolUse (추천) + SessionEnd |
 | 메모리 | 에이전트 추천 규칙 + bkit 리포트 규칙 |
+| **전역 CLAUDE.md** | `global/CLAUDE.md` → `~/.claude/CLAUDE.md` 자동 설치 (모든 세션 강제 규칙) |
 | 자동 업데이트 | 매 세션 시작 시 최신 버전 자동 반영 |
 
 ---
