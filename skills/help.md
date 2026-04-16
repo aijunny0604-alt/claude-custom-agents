@@ -24,6 +24,7 @@
 | `/playwright-report` | Playwright+보고서 | ✅ | 1인 | 작업히스토리+5Why+제안서 | Playwright 검증 + PDCA 보고서 + 제안/건의/의견 |
 | `/doc-sync` | 문서 동기화 | ✅ | 2팀 | 문서영향도맵+체크리스트15개 | 코드 변경 → 문서 자동 최신화 |
 | `/doc-organize` | 문서 분류/정리 | ✅ | 2팀 | 분류맵+가독성체크리스트 | CLAUDE.md 분할 + 전문분야별 체계화 |
+| `/test-guide` | 수동 테스트 가이드 | ✅ | 1인 | 이슈종합+위험도점수+Step-by-Step시나리오 | 직접 테스트할 포인트 추천 + 점검 방법 안내 |
 | `/check-pos` | POS 점검 | ✅ | 1인 | 영향도맵+시나리오+체크리스트 | POS Calculator 앱 전용 |
 | `/help` | 도움말 | - | - | - | 이 목록 표시 |
 
@@ -40,7 +41,7 @@
 Plan(계획) → Do(실행) → Check(분석) → Act(수정) → 90점 이상까지 자동 반복
 
 ### 카테고리별 추천
-- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify` → `/playwright-report`
+- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify` → `/playwright-report` → `/test-guide`
 - **보안**: `/security-quick` → `/security-team`
 - **UI/UX**: `/design-sense` → `/mobile-audit` → `/responsive-check` → `/a11y-check`
 - **성능**: `/perf-audit` → `/db-health`

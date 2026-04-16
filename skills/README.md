@@ -1,6 +1,6 @@
-# J-AGENTS Skills v1.6.0
+# J-AGENTS Skills v1.7.0
 
-Claude Code 전용 **24개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트** 모음입니다.
+Claude Code 전용 **25개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트** 모음입니다.
 **시나리오 매트릭스 + 영향도 맵 + 체크리스트** 기반 PDCA 사이클로 자동 반복 개선합니다.
 
 ---
@@ -39,6 +39,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/change-verify` | O | 4팀 | 변경사항 정밀 검증 (수정 후 필수) |
 | `/ux-flow` | O | 2팀 | UX 시나리오 E2E Playwright 검증 |
 | `/playwright-report` | O | 1인 | Playwright 검증 + PDCA 보고서 + 제안/건의/의견 |
+| `/test-guide` | O | 1인 | 수동 테스트 가이드 (이슈 종합 + 시나리오 + Step-by-Step 점검법) |
 
 ### 보안
 
@@ -121,6 +122,7 @@ Plan(영향도맵+시나리오) -> Do(에이전트 팀 동시 투입) -> Check(�
 
 ```
 코드 수정 후   -> /change-verify -> /pre-deploy -> 배포
+수동 테스트    -> /test-guide -> 직접 브라우저 점검 -> /change-verify
 신규 기능 후   -> /full-test -> /security-quick -> /playwright-report -> /pre-deploy
 디자인 리뉴얼  -> /design-sense -> /responsive-check -> /a11y-check
 정기 점검     -> /security-team -> /perf-audit -> /code-health -> /db-health
