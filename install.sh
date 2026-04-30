@@ -1,13 +1,13 @@
 #!/bin/bash
 # ============================================================
-# J AGENTS 설치 스크립트 v1.6.0
+# J AGENTS 설치 스크립트 v1.8.0
 # 플러그인 + hooks + autoUpdate + 메모리 한방 설치
 # Windows (Git Bash/MSYS2) / macOS / Linux 모두 지원
 # ============================================================
 
 echo ""
 echo "=============================="
-echo "  J AGENTS Installer v1.6.0"
+echo "  J AGENTS Installer v1.8.0"
 echo "=============================="
 echo ""
 
@@ -197,7 +197,7 @@ fi
 echo "=============================="
 echo ""
 echo "  포함 항목:"
-echo "    [v] J AGENTS 플러그인 (22개 에이전트)"
+echo "    [v] J AGENTS 플러그인 (26개 에이전트 + 끝판왕 오케스트레이터)"
 echo "    [v] SessionStart hook (프로젝트 상태 자동 점검)"
 echo "    [v] PostToolUse hooks (9개 자동 추천)"
 echo "    [v] SessionEnd hook (종료 시 추천)"

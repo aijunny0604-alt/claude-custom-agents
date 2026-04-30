@@ -1,7 +1,9 @@
-# J-AGENTS Skills v1.7.0
+# J-AGENTS Skills v1.8.0
 
-Claude Code 전용 **25개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트** 모음입니다.
+Claude Code 전용 **26개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트** 모음입니다.
 **시나리오 매트릭스 + 영향도 맵 + 체크리스트** 기반 PDCA 사이클로 자동 반복 개선합니다.
+
+> **v1.8.0 신규**: `/끝판왕` (`/mega-audit`) — 5-Phase 오케스트레이터로 전체 에이전트를 한 번에 자동 실행 + 자동 수정 + 재검증.
 
 ---
 
@@ -15,9 +17,9 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 ---
 
-## v1.6.0 핵심 강화 사항
+## v1.8.0 핵심 강화 사항
 
-모든 에이전트에 공통 적용:
+모든 에이전트에 공통 적용 (기존 v1.6.0 항목 + v1.8.0 신규):
 
 1. **영향도 맵 (Impact Map)** — 점검 전 코드 연쇄 관계 시각화로 누락 방지
 2. **시나리오 매트릭스 (3축)** — 변수 조합으로 테스트 시나리오 자동 도출
@@ -25,10 +27,19 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 4. **교차 검증 (Cross-Validation)** — 팀 간 결과 대조로 모순/누락 탐지
 5. **영향도 역추적** — FAIL 시 역방향 파급 범위 확인
 6. **Playwright 직접 실행** — 서브에이전트 불가, 메인 대화에서 실 브라우저 검증
+7. **★ 끝판왕 오케스트레이터 (v1.8.0)** — `/끝판왕` 한 번으로 5-Phase 전체 자동 실행
+8. **★ 파싱 안전성 점검 (v1.8.0)** — JSON.parse, `new Date(string)`, parseInt NaN 등 P1~P13 패턴 grep 전수조사 + 런타임 콘솔 에러 분류
+9. **★ 메뉴/연관성 자동 검증 (v1.8.0)** — 사이드바/네비/버튼 자동 발견 → Playwright 클릭 시뮬레이션 → 영향도 맵의 cascade 효과까지 검증
 
 ---
 
-## 에이전트 목록 (24개)
+## 에이전트 목록 (26개)
+
+### ★ 끝판왕 (전체 오케스트레이터)
+
+| 명령 | PDCA | 에이전트 | 설명 |
+|------|:----:|:--------:|------|
+| `/끝판왕` (`/mega-audit`) | O | 5-Phase | 정적+E2E+DB+UX+보안 가중평균 + 자동 수정 + 재검증 (max 5회). 메뉴/파싱/연관성 일괄 |
 
 ### 기능 검증 & 테스트
 
@@ -107,6 +118,9 @@ Plan(영향도맵+시나리오) -> Do(에이전트 팀 동시 투입) -> Check(�
 ## 사용 예시
 
 ```bash
+/끝판왕                       # 전체 자동 (활성 프로젝트 자동 감지)
+/끝판왕 . --dry-run           # 현재 폴더, 보고만
+/mega-audit pos-calculator-web --threshold=90 --max-iter=3
 /flow-check                  # 전체 플로우 엔드투엔드
 /full-test 예약 기능          # 특정 기능 대규모 테스트
 /change-verify auto          # git diff로 변경사항 자동 감지 후 검증
@@ -121,11 +135,12 @@ Plan(영향도맵+시나리오) -> Do(에이전트 팀 동시 투입) -> Check(�
 ## 추천 워크플로우
 
 ```
+한 방에 전체   -> /끝판왕 (전체 자동) → 결과 보고서만 확인
 코드 수정 후   -> /change-verify -> /pre-deploy -> 배포
 수동 테스트    -> /test-guide -> 직접 브라우저 점검 -> /change-verify
 신규 기능 후   -> /full-test -> /security-quick -> /playwright-report -> /pre-deploy
 디자인 리뉴얼  -> /design-sense -> /responsive-check -> /a11y-check
-정기 점검     -> /security-team -> /perf-audit -> /code-health -> /db-health
+정기 점검     -> /끝판왕 (모든 점검 통합) 또는 /security-team -> /perf-audit -> /code-health -> /db-health
 문서 정리     -> /doc-sync -> /doc-organize
 ```
 

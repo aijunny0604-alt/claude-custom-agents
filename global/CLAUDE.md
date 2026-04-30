@@ -28,6 +28,7 @@
 
 | 상황 | 추천 |
 |------|------|
+| **전체 자동 점검 (한 방)** | `/끝판왕`, `/mega-audit` |
 | 코드 수정 후 | `/change-verify auto`, `/flow-check` |
 | 배포 직전 | `/pre-deploy`, `/full-test` |
 | 배포 직후 | `/mobile-audit`, `/responsive-check` |
@@ -38,6 +39,7 @@
 | DB 변경 | `/db-health` |
 | 성능 이슈 | `/perf-audit` |
 | 설계 리뷰 | `/design-review` |
+| 수동 테스트 준비 | `/test-guide` |
 
 ## 3. 빌드/배포 주의사항
 

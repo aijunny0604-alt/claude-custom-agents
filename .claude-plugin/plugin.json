@@ -1,7 +1,7 @@
 {
   "name": "j-agents",
-  "version": "1.6.0",
-  "description": "J AGENTS - 24개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트 팩 + Playwright 직접 검증",
+  "version": "1.8.0",
+  "description": "J AGENTS - 26개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트 팩 + Playwright 직접 검증 + 끝판왕 오케스트레이터",
   "skills": [
     "skills/app-plan.md",
     "skills/change-verify.md",
@@ -24,6 +24,9 @@
     "skills/design-review.md",
     "skills/design-sense.md",
     "skills/playwright-report.md",
+    "skills/test-guide.md",
+    "skills/mega-audit.md",
+    "skills/끝판왕.md",
     "skills/update.md",
     "skills/help.md",
     "skills/README.md"

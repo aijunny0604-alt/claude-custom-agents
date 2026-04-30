@@ -1,4 +1,4 @@
-# AI 핸드오프 문서 — J AGENTS 플러그인 v1.6.0
+# AI 핸드오프 문서 — J AGENTS 플러그인 v1.8.0
 
 > 이 문서는 다른 AI 세션이 이 프로젝트를 이해하기 위한 핸드오프 문서입니다.
 
@@ -6,7 +6,7 @@
 
 ## 이 저장소가 뭔가?
 
-MOVEAM 사용자의 **Claude Code 커스텀 에이전트 24개**를 플러그인으로 패키징한 저장소입니다.
+MOVEAM 사용자의 **Claude Code 커스텀 에이전트 26개**를 플러그인으로 패키징한 저장소입니다.
 `install.sh` 한 줄 실행 또는 `settings.json` 등록으로 자동 설치됩니다.
 `autoUpdate: true` 설정으로 세션 시작 시 최신 버전 자동 반영됩니다.
 
@@ -17,9 +17,12 @@ MOVEAM 사용자의 **Claude Code 커스텀 에이전트 24개**를 플러그인
 ```
 j-agents/
 ├── .claude-plugin/
-│   ├── marketplace.json    ← 마켓플레이스 등록 정보 (v1.6.0)
-│   └── plugin.json         ← 플러그인 설정 (24개 스킬 목록)
-├── skills/                 ← 24개 커스텀 에이전트 (핵심)
+│   ├── marketplace.json    ← 마켓플레이스 등록 정보 (v1.8.0)
+│   └── plugin.json         ← 플러그인 설정 (26개 스킬 목록)
+├── skills/                 ← 26개 커스텀 에이전트 (핵심)
+│   ├── mega-audit.md        (★ 신규 v1.8.0, 끝판왕 오케스트레이터 본체)
+│   ├── 끝판왕.md            (★ 신규 v1.8.0, mega-audit 한글 alias)
+│   ├── test-guide.md        (★ 신규 v1.7.0, 수동 테스트 가이드)
 │   ├── flow-check.md        (기능 검증)
 │   ├── full-test.md
 │   ├── change-verify.md

@@ -1,6 +1,8 @@
-# J-AGENTS v1.6.0
+# J-AGENTS v1.8.0
 
-Claude Code 전용 **24개 QA/보안/테스트/검증/기획/디자인 에이전트 플러그인**
+Claude Code 전용 **26개 QA/보안/테스트/검증/기획/디자인 에이전트 플러그인**
+
+> **★ v1.8.0 신규**: `/끝판왕` (`/mega-audit`) — 전체 에이전트를 5-Phase로 묶어서 한 번에 자동 점검 + 자동 수정 + 재검증 반복하는 **오케스트레이터**.
 
 ---
 
@@ -18,7 +20,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 | 항목 | 내용 |
 |------|------|
-| 플러그인 | 24개 스킬 자동 로드 |
+| 플러그인 | 26개 스킬 자동 로드 |
 | Hooks | SessionStart (프로젝트 상태 점검) + PostToolUse (추천) + SessionEnd |
 | 메모리 | 에이전트 추천 규칙 + bkit 리포트 규칙 |
 | **전역 CLAUDE.md** | `global/CLAUDE.md` → `~/.claude/CLAUDE.md` 자동 설치 (모든 세션 강제 규칙) |
@@ -26,7 +28,13 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 ---
 
-## 스킬 목록 (24개)
+## 스킬 목록 (26개)
+
+### ★ 끝판왕 (전체 자동 오케스트레이터)
+
+| 명령어 | 에이전트 | 설명 |
+|--------|:--------:|------|
+| `/끝판왕` (`/mega-audit`) | 5-Phase | 정적+E2E+DB+UX+보안 가중평균 + 자동 수정 반복. 메뉴/파싱/연관성까지 한 번에 |
 
 ### 기능 검증
 
@@ -37,6 +45,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/change-verify` | 4팀 | 수정 후 정밀 검증 (영향도 역추적) |
 | `/ux-flow` | 2팀 | Playwright 사용자 흐름 E2E |
 | `/playwright-report` | 1인 | Playwright 검증 + PDCA 보고서 + 제안서/건의/의견 |
+| `/test-guide` | 1인 | 수동 테스트 가이드 (이슈 종합 + 시나리오 + Step-by-Step) |
 
 ### 보안
 
@@ -92,6 +101,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 | 상황 | 추천 순서 |
 |------|----------|
+| **전체 자동 (한 방)** | `/끝판왕` (또는 `/mega-audit`) — 모든 점검 + 자동 수정 + 재검증 |
 | 기능 검증 | `/flow-check` → `/full-test` → `/change-verify` → `/playwright-report` |
 | 보안 | `/security-quick` → `/security-team` |
 | UI/UX | `/design-sense` → `/mobile-audit` → `/responsive-check` → `/a11y-check` |
@@ -99,6 +109,7 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | 코드 관리 | `/code-health` |
 | 배포 | `/pre-deploy` |
 | 긴급 수정 | `/quick-fix` |
+| 수동 테스트 준비 | `/test-guide` |
 
 ---
 
@@ -158,7 +169,7 @@ j-agents/
   ├── .claude-plugin/
   │   ├── plugin.json          ← 버전 + 스킬 목록
   │   └── marketplace.json     ← 마켓플레이스 메타정보
-  ├── skills/                  ← 22개 스킬 (.md)
+  ├── skills/                  ← 26개 스킬 (.md)
   ├── hooks/                   ← SessionStart hook
   ├── memory/                  ← 공통 피드백 메모리
   ├── install.sh               ← 원클릭 설치
