@@ -45,6 +45,7 @@
    └─ 1.5-3. 시나리오 매트릭스 (메뉴 × CRUD × 데이터상태)
 
 [Phase 2] E2E 전수조사 — 실제 작동 검증
+   ├─ 2-0. 사전 인프라 가드 ★ 신규 (Playwright lock + .next 캐시 + 인증)
    ├─ 2-1. 라우트별 Playwright 순회
    ├─ 2-2. 콘솔/네트워크 + 파싱 런타임 에러 분류
    ├─ 2-3. 메뉴 클릭 시뮬레이션 (1.5-1에서 발견한 모든 메뉴) ★
@@ -261,6 +262,141 @@ grep -rnE "<Link\s+(to|href)=" src/
 
 각 시나리오는 Phase 2-5에서 Playwright로 실제 실행됨.
 
+### 1.5-4. 버튼/페이지 핸들러 풀 트레이스 (코드→로직→DB) ★ 신규
+
+**목적**: 단순 클릭 시뮬레이션을 넘어, **각 버튼/페이지가 호출하는 함수 체인 전체를 코드 레벨로 추적**해서 로직 결함을 정적으로 검출. Phase 2의 런타임 검증과 짝을 이룸.
+
+#### 1.5-4-1. 핸들러 함수 추출
+
+각 메뉴 항목(1.5-1)의 `action` → 실제 핸들러 함수 본문까지 따라 들어가서 풀 체인 추출:
+
+```bash
+# 클릭 핸들러 정의 추출 (예: onClick={handleSave})
+grep -rnE "(onClick|onPress|onSubmit)=\{?\s*([a-zA-Z_]+)" src/
+
+# 핸들러 함수 본문 추적 (예: const handleSave = async () => {...})
+grep -rnE "(const|function)\s+handleXxx\b" src/
+
+# 함수 내부에서 호출하는 함수/API 추출
+# - fetch/axios/supabase 호출
+# - 다른 hooks/services 호출
+# - state setter 호출
+```
+
+**풀 체인 표현 형식**:
+```
+🔗 핸들러 풀 체인 (메뉴: "예약 저장" 버튼)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Layer 1: UI 핸들러] ReservationForm.tsx:142
+  └─ const handleSubmit = async (data) => {
+       try {
+         setLoading(true)
+         await reservationService.create(data)        ← Layer 2
+         toast.success("저장됨")
+         router.push("/reservations")
+       } catch (e) { setError(e.message) }
+     }
+
+[Layer 2: 서비스 함수] services/reservation.ts:30
+  └─ export async function create(data: ReservationInput) {
+       const validated = reservationSchema.parse(data)  ← Zod 검증
+       const res = await fetch("/api/reservations", {  ← Layer 3
+         method: "POST",
+         body: JSON.stringify(validated)
+       })
+       if (!res.ok) throw new ApiError(res.status)
+       return res.json()
+     }
+
+[Layer 3: API 라우트] app/api/reservations/route.ts:55
+  └─ export async function POST(req) {
+       const session = await getSession(req)            ← 인증
+       const body = await req.json()
+       const reservation = await db.reservation.create({ ← Layer 4
+         data: { ...body, userId: session.userId }
+       })
+       await invalidateCache("reservations")            ← 캐시
+       await sendNotification(reservation)              ← 부수효과
+       return Response.json(reservation)
+     }
+
+[Layer 4: DB 쿼리] Prisma/Supabase
+  └─ INSERT INTO reservations (...)
+     트리거: oil_stock UPDATE (-1) - parts_stock UPDATE (-N)
+     RLS: userId 일치 확인
+
+[Layer 5: 부수효과 체인]
+  ├─ invalidateCache("reservations") → 목록 페이지 자동 refetch
+  ├─ sendNotification → 외부 API (이메일/SMS)
+  └─ Supabase Realtime → 다른 세션의 캘린더 자동 업데이트
+```
+
+#### 1.5-4-2. 핸들러 정적 결함 검출 (체크리스트)
+
+각 Layer마다 자동 점검:
+
+| # | 체크 항목 | 패턴/방법 | severity |
+|---|----------|-----------|----------|
+| H1 | UI 핸들러에 try/catch 없음 | `async.*=>.*await` + catch 부재 | major |
+| H2 | setLoading(true) 후 finally 누락 | try without finally + setLoading | major |
+| H3 | 서비스 함수가 입력 검증 없이 fetch | Zod/yup parse 없음 | critical |
+| H4 | API 라우트에 인증 체크 누락 | getSession/getUser 없음 | critical |
+| H5 | DB 호출 결과 무시 (`await` 없음) | promise dangling | major |
+| H6 | 트랜잭션 필요한 다중 INSERT/UPDATE 분리 호출 | `db.x.create` + `db.y.update` 별도 await | critical |
+| H7 | 에러 후 state 정합성 깨짐 (rollback 없음) | catch에 setState 누락 | major |
+| H8 | 캐시 invalidation 누락 | mutation 후 `invalidate`/`revalidatePath` 없음 | major |
+| H9 | 외부 API 호출에 timeout/retry 없음 | fetch without AbortSignal | minor |
+| H10 | Optimistic update 후 실패 시 revert 누락 | optimistic + catch에 revert 없음 | major |
+| H11 | RLS 미적용 테이블 접근 | service_role key 사용 또는 RLS off | critical |
+| H12 | Race condition (concurrent request 동시 처리) | debounce/throttle 없는 onChange + API | minor |
+| H13 | 응답 type 검증 없이 사용 (`res.json() as Foo`) | 타입 단언 + 검증 부재 | major |
+| H14 | 로딩 중 다시 클릭 가능 (중복 제출) | disabled 처리 없음 | major |
+| H15 | 성공 메시지/실패 메시지 일관성 | toast/alert 분기 누락 | minor |
+
+각 발견 항목:
+```json
+{
+  "id": "handler-H4-001",
+  "severity": "critical",
+  "category": "handler-trace",
+  "menu": "예약 저장",
+  "layer": "API Route",
+  "file": "app/api/reservations/route.ts",
+  "line": 55,
+  "message": "POST 핸들러에 인증 체크(getSession) 없음",
+  "fix_hint": "라우트 진입 시 getSession(req) 호출 + null이면 401 반환",
+  "auto_fixable": false  // 인증 로직은 사용자 검토 필수
+}
+```
+
+#### 1.5-4-3. 비즈니스 로직 정합성 점검
+
+도메인 규칙이 **실제 코드에 반영됐는지** grep + 호출 그래프로 확인:
+
+| 도메인 규칙 예시 | 검증 방법 |
+|------------------|-----------|
+| "예약 취소 시 오일 재고 환불" | 취소 핸들러 → oil_stock UPDATE (+) 호출 존재 확인 |
+| "COMPLETED 예약만 매출 집계" | 집계 쿼리에 `WHERE status = 'COMPLETED'` 존재 |
+| "삭제 시 연관 데이터 정리" | DELETE 핸들러에 cascade 또는 명시적 cleanup |
+| "마일리지 음수 불가" | INSERT/UPDATE 전 validation에 `>= 0` 확인 |
+| "요금 음수 불가" | 동일 |
+
+도메인 규칙은 `.mega-audit.json`의 `business_rules` 배열로 프로젝트별 정의 가능:
+```json
+{
+  "business_rules": [
+    {
+      "id": "BR-01",
+      "description": "예약 취소 시 오일/부품 재고 환불",
+      "trigger": "DELETE /api/reservations/:id OR status=CANCELLED",
+      "expected_calls": ["oil_stock UPDATE +", "parts_stock UPDATE +"]
+    }
+  ]
+}
+```
+
+각 규칙은 핸들러 풀 체인을 grep해서 expected_calls 모두 존재하는지 확인. 누락 시 `business-rule-broken` critical 이슈.
+
 ---
 
 ## Phase 2: E2E 전수조사 (Sweep) — 가중치 25%
@@ -447,6 +583,72 @@ Phase 1.5-3에서 도출한 시나리오를 Playwright로 자동 실행. 모드�
 - `--mode=fast`: 생략 (2-1~2-5 만으로 충분)
 - `--mode=full`: `/flow-check` 추가 호출
 - `--mode=deep`: `/full-test` + `/flow-check` + `/ux-flow` 모두 호출
+
+### 2-7. 핸들러 풀 체인 런타임 검증 (★ Phase 1.5-4 기반) ★ 신규
+
+Phase 1.5-4에서 정적으로 추출한 **핸들러 풀 체인(UI→Service→API→DB→부수효과)이 런타임에도 그대로 작동하는지** 실제 클릭으로 검증.
+
+각 핸들러마다 다음 5-Layer를 모두 검증:
+
+#### Layer 1: UI 핸들러 진입 검증
+1. `mcp__playwright__browser_click` → 트리거 (예: "예약 저장" 버튼)
+2. `mcp__playwright__browser_console_messages` → 핸들러 진입 로그 또는 에러 캡처
+3. 검증: 버튼 disabled 처리됐는가? (중복 제출 방지)
+
+#### Layer 2: 서비스 함수/검증 호출
+- 검증: 입력 검증(Zod) 통과? 또는 명확한 에러 메시지 표시?
+- `browser_snapshot`으로 폼 에러 표시 확인
+
+#### Layer 3: API 라우트 호출 검증
+- `mcp__playwright__browser_network_requests` 또는 `browser_network_request` 로 캡처
+- 검증:
+  - URL = Phase 1.5-4의 `[Layer 3]` 예측과 일치
+  - HTTP method/body 정확
+  - 응답 status 200~299
+  - 응답 body 형식 = expected schema
+- **불일치 시 `chain-mismatch-layer3` critical**
+
+#### Layer 4: DB 변경 검증
+- 가능한 경우 Supabase MCP 또는 API GET으로 직접 조회
+- 검증: INSERT/UPDATE/DELETE가 의도한 row에 정확히 반영
+- 트리거된 부수 변경(재고 차감 등)도 동시에 확인
+- **누락 시 `db-side-effect-missing` critical**
+
+#### Layer 5: 부수효과 + UI 반영
+- 캐시 무효화: 다른 페이지 이동 후 자동 refetch 확인
+- 라우팅: `browser_snapshot` URL 확인
+- 토스트/알림: 성공 메시지 표시 확인
+- 외부 알림(이메일 등): 가능하면 mock 또는 큐 확인 (생략 가능)
+
+#### 검증 결과 비교 (정적 vs 런타임)
+
+```
+🔬 핸들러 풀 체인 검증 결과 (메뉴: "예약 저장")
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Layer | 정적 예측 (Phase 1.5-4) | 런타임 관찰 (Phase 2-7) | 일치?
+─────┼─────────────────────────┼──────────────────────────┼──────
+L1    | handleSubmit 진입       | onclick 발화 + 로그      | ✅
+L2    | reservationSchema.parse | (검증 통과 - 에러 없음)  | ✅
+L3    | POST /api/reservations  | POST /api/reservations 200 | ✅
+L4    | reservations INSERT     | row 1개 추가 확인          | ✅
+      | oil_stock UPDATE -1     | (변동 없음!)               | ❌ critical
+L5    | router.push('/reservations') | URL 이동 확인         | ✅
+      | toast.success           | "저장됨" 표시              | ✅
+      | invalidate("reservations") | 목록 새로고침 확인       | ✅
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+누락: oil_stock 차감 (예측 vs 실제 불일치)
+→ 이슈: chain-mismatch-layer4 critical
+→ fix_hint: app/api/reservations/route.ts에 oil_stock UPDATE 누락
+```
+
+#### 점수 반영
+
+이 검증은 Phase 2 점수에 추가 포함:
+```
+chain_checks = 메뉴 수 × 5 (Layer)
+chain_failed = 불일치 수
+Phase 2 score 분모/분자에 합산
+```
 
 **Phase 2 점수 계산**:
 ```
@@ -761,5 +963,8 @@ git branch -D {backup_branch}
 16. **연관성 검증 (Phase 2-4)**: 메뉴 클릭 → API → state → 화면 → 다른 메뉴/페이지에 미치는 영향까지 영향도 맵의 모든 노드 검증. 누락 시 `cascade-broken` critical
 17. **시나리오 매트릭스 (Phase 1.5-3 + 2-5)**: 메뉴 × 데이터상태 × 동작 조합으로 자동 시나리오 도출. 모드별 실행 범위 차등 (fast=1, full=3, deep=전체)
 18. **파이프라인 일관성**: 정적 분석(Phase 1) → 영향도 맵(Phase 1.5) → 작동 검증(Phase 2)이 끊기지 않고 한 흐름. Phase 1.5 결과는 Phase 2의 입력. 사용자 개입 없이 자동 연결
+19. **핸들러 풀 체인 (Phase 1.5-4 + 2-7)**: 모든 버튼/페이지의 UI→Service→API→DB→부수효과 5-Layer를 정적 추적 + 런타임 검증. H1~H15 결함 패턴 검출 + Layer별 정적 vs 런타임 일치 비교. 불일치 시 critical
+20. **비즈니스 로직 정합성 (Phase 1.5-4-3)**: `.mega-audit.json`의 `business_rules` 정의된 도메인 규칙(예: "취소 시 재고 환불")이 핸들러 코드 + 런타임 동작 양쪽에 모두 반영됐는지 검증. 누락 시 `business-rule-broken` critical
+21. **dead handler 검출**: 정의됐지만 실제로 호출되지 않는 핸들러 함수, 또는 호출되지만 아무 것도 안 하는 빈 핸들러는 minor 이슈로 기록
 19. **Playwright Lock 자동 정리 (Phase 2-0-1)**: Phase 2 진입 직전 chrome 프로세스 + Singleton lock 파일 강제 정리. `Browser is already in use` 에러는 코드 버그가 아닌 인프라 잡음 → 사용자에게 묻지 말고 자동 처리. 최대 2회 재시도, 실패 시 Phase 2만 SKIP하고 다른 Phase 계속 진행 (전체 중단 X)
 20. **Dev 캐시 손상 자동 복구 (Phase 2-0-2)**: Next.js `.next/dev/server/app/**/page_client-reference-manifest.js` 누락으로 인한 HTTP 500은 webpack incremental build 잡음. dev 서버 종료 → `.next` 삭제 → 재시작을 1회 자동 수행. 복구 후에도 500이면 진짜 코드 버그로 critical 기록. **production 빌드와 무관**하므로 점수 가중치는 약하게(`runtime.devCacheRecovery=true` flag 추가하여 false positive 방지)
