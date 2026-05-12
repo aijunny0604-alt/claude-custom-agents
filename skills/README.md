@@ -1,9 +1,11 @@
-# J-AGENTS Skills v1.8.0
+# J-AGENTS Skills v1.9.0
 
-Claude Code 전용 **26개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트** 모음입니다.
+Claude Code 전용 **28개 커스텀 QA/보안/테스트/검증/기획/디자인/기술스카우트 에이전트** 모음입니다.
 **시나리오 매트릭스 + 영향도 맵 + 체크리스트** 기반 PDCA 사이클로 자동 반복 개선합니다.
 
-> **v1.8.0 신규**: `/끝판왕` (`/mega-audit`) — 5-Phase 오케스트레이터로 전체 에이전트를 한 번에 자동 실행 + 자동 수정 + 재검증.
+> **v1.9.0 신규**: `/tech-radar` (`/기술레이더`) — J AGENTS 레포 + Claude Code 공식 문서를 동시 모니터링해서 사용자 컨텍스트 매칭 Top 3 추천을 대화형으로 도출.
+>
+> **v1.8.0**: `/끝판왕` (`/mega-audit`) — 5-Phase 오케스트레이터로 전체 에이전트를 한 번에 자동 실행 + 자동 수정 + 재검증.
 
 ---
 
@@ -96,6 +98,12 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/doc-sync` | O | 2팀 | 코드 변경 → 문서 자동 최신화 |
 | `/doc-organize` | O | 2팀 | CLAUDE.md 분할 + 체계화 |
 | `/app-plan` | - | 1인 | 앱 기획 인터뷰 |
+
+### 기술 스카우트 (v1.9.0 신규)
+
+| 명령 | PDCA | 에이전트 | 설명 |
+|------|:----:|:--------:|------|
+| `/tech-radar` (`/기술레이더`) | - | 1인 대화형 | J AGENTS 레포 + Claude Code 공식 문서 모니터링 → 사용자 컨텍스트 매칭 Top 3 추천 (Why/How/Cost) → Deep Dive → Action Plan |
 
 ### 기타
 
