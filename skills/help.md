@@ -6,7 +6,6 @@
 
 | 명령어 | 용도 | PDCA | 에이전트 | 핵심 강화 | 설명 |
 |--------|------|:----:|:--------:|:---------:|------|
-| `/끝판왕` (`/mega-audit`) | 끝판왕 자동화 | ✅ | 5-Phase | 정적+E2E+DB+UX+보안 가중평균 + Auto-Fix 반복 | 모든 에이전트 오케스트레이터 |
 | `/full-test` | 대규모 통합 테스트 | ✅ | 4팀 | 영향도맵+시나리오+교차검증 | 로컬+프로덕션 API 테스트 |
 | `/change-verify` | 변경사항 검증 | ✅ | 4팀 | 영향도맵+시나리오+교차검증 | 수정 후 정밀 검증 |
 | `/ux-flow` | UX 시나리오 E2E | ✅ | 2팀 | 영향도맵+시나리오+체크리스트 | Playwright 사용자 흐름 검증 |
@@ -21,11 +20,8 @@
 | `/pre-deploy` | 배포 전 체크 | ✅ | 1인 | 영향도맵+체크리스트19개 | 빌드+타입+DB+환경변수 검증 |
 | `/quick-fix` | 빠른 버그 수정 | ✅ | 1인 | 경량 영향도+체크리스트 | 원인 추적→수정→검증 자동화 |
 | `/design-review` | 구조/디자인 리뷰 | ✅ | 3팀 | 영향도맵+아이디어도출+로직검사 | 구조 간편성 + 대안 제안 + 시나리오 |
-| `/design-sense` | 디자인 감성 점검 | ✅ | 3팀 | 375/768/1440 3해상도+55개체크리스트+2026트렌드 | 모달/카드/버튼/애니메이션/색감/비율 + 모바일 감성 + 트렌드 |
-| `/playwright-report` | Playwright+보고서 | ✅ | 1인 | 작업히스토리+5Why+제안서 | Playwright 검증 + PDCA 보고서 + 제안/건의/의견 |
 | `/doc-sync` | 문서 동기화 | ✅ | 2팀 | 문서영향도맵+체크리스트15개 | 코드 변경 → 문서 자동 최신화 |
 | `/doc-organize` | 문서 분류/정리 | ✅ | 2팀 | 분류맵+가독성체크리스트 | CLAUDE.md 분할 + 전문분야별 체계화 |
-| `/test-guide` | 수동 테스트 가이드 | ✅ | 1인 | 이슈종합+위험도점수+Step-by-Step시나리오 | 직접 테스트할 포인트 추천 + 점검 방법 안내 |
 | `/check-pos` | POS 점검 | ✅ | 1인 | 영향도맵+시나리오+체크리스트 | POS Calculator 앱 전용 |
 | `/help` | 도움말 | - | - | - | 이 목록 표시 |
 
@@ -42,14 +38,13 @@
 Plan(계획) → Do(실행) → Check(분석) → Act(수정) → 90점 이상까지 자동 반복
 
 ### 카테고리별 추천
-- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify` → `/playwright-report` → `/test-guide`
+- **기능 검증**: `/full-test` → `/ux-flow` → `/change-verify`
 - **보안**: `/security-quick` → `/security-team`
-- **UI/UX**: `/design-sense` → `/mobile-audit` → `/responsive-check` → `/a11y-check`
+- **UI/UX**: `/mobile-audit` → `/responsive-check` → `/a11y-check`
 - **성능**: `/perf-audit` → `/db-health`
 - **코드 관리**: `/code-health` → `/design-review`
 - **문서 관리**: `/doc-sync` → `/doc-organize`
 - **배포**: `/pre-deploy` (점검 + 문서 최신화)
 - **긴급**: `/quick-fix`
-- **끝판왕 (전체 자동)**: `/끝판왕` 또는 `/mega-audit` — 모든 에이전트를 5-Phase로 묶어서 자동 점검 + 자동 수정 + 재검증 반복
 
 위 목록을 보기 좋게 표시하세요.

@@ -1,58 +1,63 @@
-# J-AGENTS Skills v1.9.0
+# Claude Code 커스텀 에이전트 v2.1
 
-Claude Code 전용 **28개 커스텀 QA/보안/테스트/검증/기획/디자인/기술스카우트 에이전트** 모음입니다.
-**시나리오 매트릭스 + 영향도 맵 + 체크리스트** 기반 PDCA 사이클로 자동 반복 개선합니다.
+Claude Code에서 사용할 �� 있는 **시나리오 매트릭스 + 영향도 맵 + 체크리스트** 기반 PDCA 커스텀 에이전트 모음입니다.
 
-> **v1.9.0 신규**: `/tech-radar` (`/기술레이더`) — J AGENTS 레포 + Claude Code 공식 문서를 동시 모니터링해서 사용자 컨텍스트 매칭 Top 3 추천을 대화형으로 도출.
->
-> **v1.8.0**: `/끝판왕` (`/mega-audit`) — 5-Phase 오케스트레이터로 전체 에이전트를 한 번에 자동 실행 + 자동 수정 + 재검증.
-
----
-
-## 한 줄 설치 (플러그인 방식 - 권장)
+## 한 줄 설치
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/install.sh | bash
+# Windows (Git Bash) / Mac / Linux
+git clone https://github.com/aijunny0604-alt/claude-commands.git /tmp/cc && mkdir -p ~/.claude/commands && cp /tmp/cc/*.md ~/.claude/commands/ && rm -rf /tmp/cc && echo "설치 완료! Claude Code에서 /help 로 확인하세요"
 ```
 
-설치 후 Claude Code 재시작하면 자동 적용됩니다. `autoUpdate: true`라 이후 업데이트는 세션 시작 시 자동 반영됩니다.
+## 업데이트
+
+```bash
+git clone https://github.com/aijunny0604-alt/claude-commands.git /tmp/cc && cp /tmp/cc/*.md ~/.claude/commands/ && rm -rf /tmp/cc && echo "���데이트 완료!"
+```
+
+## 또는 install.sh 사용
+
+```bash
+curl -sL https://raw.githubusercontent.com/aijunny0604-alt/claude-commands/master/install.sh | bash
+```
 
 ---
 
-## v1.8.0 핵심 강화 사항
+## v2.1 신규 — Codex 대조 검증 게이트
 
-모든 에이전트에 공통 적용 (기존 v1.6.0 항목 + v1.8.0 신규):
+모든 19개 실행 에이전트에 **Codex 대조 검증 게이트** 가 공통 추가되었습니다.
+
+- 사이클 마지막에 클로드 1차 결과 ↔ Codex 2차 의견 합치표 자동 생성
+- Codex CLI가 없으면 자동 스킵 → 클로드 단독 환경에서도 100% 동일 동작
+- 합치 항목은 자동 진행 / 충돌 항목은 `AskUserQuestion` 으로 사용자 결정
+- 1분 타임아웃으로 Codex가 멈춰도 메인 흐름이 막히지 않음
+- 결과는 REPORT 보고서에 "Codex 대조 검증 결과" 섹션으로 1단락 기록
+
+→ 더블체크가 필요한 분석/리뷰/구현/QA 전 작업에서 단일 모델 편향을 완화합니다.
+
+---
+
+## v2.0 핵심 강화 사항
+
+모든 에이전트에 공통 적용:
 
 1. **영향도 맵 (Impact Map)** — 점검 전 코드 연쇄 관계 시각화로 누락 방지
 2. **시나리오 매트릭스 (3축)** — 변수 조합으로 테스트 시나리오 자동 도출
 3. **마스터 체크리스트** — 실행 가능한 체크 항목 + 커버리지 추적
 4. **교차 검증 (Cross-Validation)** — 팀 간 결과 대조로 모순/누락 탐지
 5. **영향도 역추적** — FAIL 시 역방향 파급 범위 확인
-6. **Playwright 직접 실행** — 서브에이전트 불가, 메인 대화에서 실 브라우저 검증
-7. **★ 끝판왕 오케스트레이터 (v1.8.0)** — `/끝판왕` 한 번으로 5-Phase 전체 자동 실행
-8. **★ 파싱 안전성 점검 (v1.8.0)** — JSON.parse, `new Date(string)`, parseInt NaN 등 P1~P13 패턴 grep 전수조사 + 런타임 콘솔 에러 분류
-9. **★ 메뉴/연관성 자동 검증 (v1.8.0)** — 사이드바/네비/버튼 자동 발견 → Playwright 클릭 시뮬레이션 → 영향도 맵의 cascade 효과까지 검증
 
 ---
 
-## 에이전트 목록 (26개)
+## 에이전트 목록 (15개)
 
-### ★ 끝판왕 (전체 오케스트레이터)
-
-| 명령 | PDCA | 에이전트 | 설명 |
-|------|:----:|:--------:|------|
-| `/끝판왕` (`/mega-audit`) | O | 5-Phase | 정적+E2E+DB+UX+보안 가중평균 + 자동 수정 + 재검증 (max 5회). 메뉴/파싱/연관성 일괄 |
-
-### 기능 검증 & 테스트
+### 테스트 & QA
 
 | 명령 | PDCA | 에이전트 | 설명 |
 |------|:----:|:--------:|------|
-| `/flow-check` | O | 6팀 | 전체 플로우 엔드투엔드 검증 |
 | `/full-test` | O | 4팀 | 대규모 통합 테스트 (로컬+프로덕션) |
 | `/change-verify` | O | 4팀 | 변경사항 정밀 검증 (수정 후 필수) |
 | `/ux-flow` | O | 2팀 | UX 시나리오 E2E Playwright 검증 |
-| `/playwright-report` | O | 1인 | Playwright 검증 + PDCA 보고서 + 제안/건의/의견 |
-| `/test-guide` | O | 1인 | 수동 테스트 가이드 (이슈 종합 + 시나리오 + Step-by-Step 점검법) |
 
 ### 보안
 
@@ -61,14 +66,12 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 | `/security-team` | O | 3팀 | OWASP Top 10 보안 풀 스캔 |
 | `/security-quick` | O | 1인 | 경량 보안 점검 (5분) |
 
-### UI/UX & 디자인
+### UI/UX
 
 | 명령 | PDCA | 에이전트 | 설명 |
 |------|:----:|:--------:|------|
-| `/design-sense` | O | 3팀 | 감각적 디자인 감성 점검 (375/768/1440 3해상도) + 2026 트렌드 |
-| `/design-review` | O | 3팀 | 구조/디자인 리뷰 + 아이디어 도출 |
 | `/mobile-audit` | O | 4팀 | 모바일 UI/UX 최적화 점검 |
-| `/responsive-check` | O | 3해상도 | 멀티 해상도 반응형 점검 |
+| `/responsive-check` | O | 3해상도 | 멀티 해��도 반응형 점검 |
 | `/a11y-check` | O | 2팀 | WCAG 2.1 접근성 점검 |
 
 ### 성능 & DB
@@ -82,35 +85,20 @@ curl -sSL https://raw.githubusercontent.com/aijunny0604-alt/j-agents/master/inst
 
 | 명령 | PDCA | 에이전트 | 설명 |
 |------|:----:|:--------:|------|
-| `/code-health` | O | 3팀 | 중복/복잡도/미사용 코드 관리 |
+| `/code-health` | O | 3팀 | 중복/���잡도/미사용 코드 관리 |
 
 ### 배포 & 버그
 
 | 명령 | PDCA | 에이전트 | 설명 |
 |------|:----:|:--------:|------|
-| `/pre-deploy` | O | 1인 | 배포 전 자동 체크리스트 (빌드+타입+DB+환경+Playwright) |
+| `/pre-deploy` | O | 1인 | 배포 전 자동 체크리스트 (19항목) |
 | `/quick-fix` | O | 1인 | 빠른 버그 수정 (영향도 추적 포함) |
-
-### 문서 & 기획
-
-| 명령 | PDCA | 에이전트 | 설명 |
-|------|:----:|:--------:|------|
-| `/doc-sync` | O | 2팀 | 코드 변경 → 문서 자동 최신화 |
-| `/doc-organize` | O | 2팀 | CLAUDE.md 분할 + 체계화 |
-| `/app-plan` | - | 1인 | 앱 기획 인터뷰 |
-
-### 기술 스카우트 (v1.9.0 신규)
-
-| 명령 | PDCA | 에이전트 | 설명 |
-|------|:----:|:--------:|------|
-| `/tech-radar` (`/기술레이더`) | - | 1인 대화형 | J AGENTS 레포 + Claude Code 공식 문서 모니터링 → 사용자 컨텍스트 매칭 Top 3 추천 (Why/How/Cost) → Deep Dive → Action Plan |
 
 ### 기타
 
 | 명령 | 설명 |
 |------|------|
 | `/check-pos` | POS Calculator 앱 전용 점검 |
-| `/update` | 에이전트 수동 업데이트 |
 | `/help` | 에이전트 목록 + 사용법 표시 |
 
 ---
@@ -126,33 +114,23 @@ Plan(영향도맵+시나리오) -> Do(에이전트 팀 동시 투입) -> Check(�
 ## 사용 예시
 
 ```bash
-/끝판왕                       # 전체 자동 (활성 프로젝트 자동 감지)
-/끝판왕 . --dry-run           # 현재 폴더, 보고만
-/mega-audit pos-calculator-web --threshold=90 --max-iter=3
-/flow-check                  # 전체 플로우 엔드투엔드
-/full-test 예약 기능          # 특정 기능 대규모 테스트
-/change-verify auto          # git diff로 변경사항 자동 감지 후 검증
-/design-sense                # 디자인 감성 점검 + 트렌드 추천
-/playwright-report 이번주     # 이번 주 변경분 Playwright + 보고서
-/security-team               # 전체 보안 점검
-/mobile-audit                # 모바일 최적화 점검
-/pre-deploy production       # 배포 전 체크리스트
-/quick-fix 로그인 안됨        # 빠른 버그 수정
+/full-test 예약 기능        # 특정 기능 대규모 테스트
+/change-verify auto         # git diff로 변경사항 자동 감지 후 검증
+/security-team              # 전체 보안 점검
+/mobile-audit               # 모바일 최적화 점검
+/pre-deploy production      # 배포 전 체크리스트
+/quick-fix 로그인 안됨      # 빠른 버그 수정
 ```
 
 ## 추천 워크플로우
 
 ```
-한 방에 전체   -> /끝판왕 (전체 자동) → 결과 보고서만 확인
-코드 수정 후   -> /change-verify -> /pre-deploy -> 배포
-수동 테스트    -> /test-guide -> 직접 브라우저 점검 -> /change-verify
-신규 기능 후   -> /full-test -> /security-quick -> /playwright-report -> /pre-deploy
-디자인 리뉴얼  -> /design-sense -> /responsive-check -> /a11y-check
-정기 점검     -> /끝판왕 (모든 점검 통합) 또는 /security-team -> /perf-audit -> /code-health -> /db-health
-문서 정리     -> /doc-sync -> /doc-organize
+코드 수정 후 -> /change-verify -> /pre-deploy -> 배포
+신규 기능 후 -> /full-test -> /security-quick -> /pre-deploy -> 배포
+정기 점검   -> /security-team -> /perf-audit -> /code-health -> /db-health
 ```
 
 ## 파일 위치
 
-- **플러그인 방식** (권장): 설치 스크립트가 자동으로 `~/.claude/settings.json` 등록
-- **수동 설치**: `~/.claude/commands/` 에 `*.md` 복사
+- **모든 프로젝트**: `~/.claude/commands/` 에 설치
+- **특정 프로젝트만**: `프로젝트/.claude/commands/` 에 복사
