@@ -20,9 +20,9 @@ import sys
 
 from PIL import Image, ImageFilter, ImageOps
 
-RATIO = 0.24          # 로고 폭 = 사진 가로의 24%
-MARGIN_X = 0.025      # 좌측 여백 (사진 가로 대비 비율)
-MARGIN_Y = 0.025      # 상단 여백 (사진 가로 대비 비율 — 가로 기준으로 통일해 좌우상하 균형)
+RATIO = 0.18          # 로고 폭 = 사진 가로의 18%
+MARGIN_X = 0.012      # 좌측 여백 (사진 가로 대비 비율) — 좌상단 모서리에 딱 붙이고 약간만
+MARGIN_Y = 0.012      # 상단 여백 (사진 가로 대비 비율 — 가로 기준으로 통일해 좌우상하 균형)
 SHADOW = True         # 밝은 배경 대비용 그림자
 SHADOW_BLUR = 9
 SHADOW_ALPHA = 120    # 그림자 진하기 0~255
