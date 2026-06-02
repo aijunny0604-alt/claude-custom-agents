@@ -1,9 +1,19 @@
 ---
-description: Team FERVID 네이버 블로그 글 v3.5 정중 자연체 자동 작성 + 번호판 다각형(quad) 모자이크 + 작성 후 사진↔본문 정합성 최종 검토 + EXIF 기반 사진 자동 정렬 + 첨부 순서표. 사진 폴더 경로 + (선택) 메모.txt 기반으로 한 번에
+description: Team FERVID 네이버 블로그 글 v3.5.2 정중 자연체 자동 작성 + 번호판 다각형(quad) 모자이크 + 좌상단 FERVID 로고 워터마크 자동 합성 + 작성 후 사진↔본문 정합성 최종 검토 + EXIF 기반 사진 자동 정렬 + 첨부 순서표. 사진 폴더 경로 + (선택) 메모.txt 기반으로 한 번에
 argument-hint: <폴더경로>  (예: "C:\Users\MOVEAM_PC\Downloads\작업 (1)\6-25.ad순정형가변")
 ---
 
-# /blog — Team FERVID 네이버 블로그 자동 작성 (v3.5)
+# /blog — Team FERVID 네이버 블로그 자동 작성 (v3.5.2)
+
+## v3.5.2 변경사항 (2026-06-02)
+- **좌상단 FERVID 로고 워터마크 자동 합성 (7.6단계 신설)**: 번호판 모자이크까지 끝낸 최종 사진 세트
+  (모자이크된 건 `_mosaic`, 나머지는 원본)에 좌측 상단 FERVID 로고를 일괄 합성해 `_logo\` 폴더에 저장.
+  PhotoScape 수동 작업 대체. 밝은 차체에서도 보이게 약한 그림자 포함.
+- **로고 파일 고정 경로**: `C:\Users\MOVEAM_PC\claude-custom-agents\assets\fervid_logo.png` (투명배경 PNG).
+- **헬퍼 스크립트**: `C:\Users\MOVEAM_PC\claude-custom-agents\scripts\logo_watermark.py`
+
+## v3.5.1 변경사항 (2026-06-01)
+- 부품·작업 명칭을 현장 통용 검색어 우선으로 (행거·방열판·데후 등). 아래 5단계 명칭 규칙 참조.
 
 ## v3.5 변경사항 (2026-06-01)
 - **작성 후 최종 검토(QA) 단계 신설 (8단계)**: 본문을 다 쓴 뒤, 완성본을 놓고 **각 사진 ↔ 해당 섹션
@@ -216,6 +226,20 @@ python "C:\Users\MOVEAM_PC\claude-custom-agents\scripts\sort_photos.py" "<경로
    - 스크립트가 `ImageOps.exif_transpose`로 정상 방향 처리하므로 좌표는 **Read로 본 정상 방향 기준**으로 잡는다.
    - 박스/꼭짓점이 정반대로 처리되면 각 점을 `(1-x, 1-y)`로 반전해 재시도.
 
+### 7.6 좌상단 FERVID 로고 워터마크 (v3.5.2 신설 — 필수)
+번호판 모자이크까지 끝낸 **최종 사진 세트**에 좌측 상단 FERVID 로고를 일괄 합성한다. (PhotoScape 수동 작업 대체)
+
+1. **최종 사진 세트 구성**: 각 사진에 대해 `_mosaic\<파일명>` 이 있으면 그것을, 없으면 원본을 입력으로 쓴다.
+   (즉 모자이크된 건 모자이크본 위에 로고, 나머지는 원본 위에 로고)
+2. **로고 합성 실행**:
+   ```powershell
+   python "C:\Users\MOVEAM_PC\claude-custom-agents\scripts\logo_watermark.py" "C:\Users\MOVEAM_PC\claude-custom-agents\assets\fervid_logo.png" "C:\tmp\logo_targets.json"
+   ```
+   - `logo_targets.json` 형식: `[{"path":"<입력(_mosaic 우선)>","out":"<폴더>\_logo\<파일명>"}, ...]`
+   - 결과는 각 작업 폴더의 `_logo\` 하위에 저장된다. **이 `_logo\` 사진이 네이버 업로드용 최종본**이다.
+3. **기본값**: 로고 폭 = 사진 가로 24%, 좌상단 여백 2.5%, 약한 그림자(밝은 차체에서도 보이게). 조정은 스크립트 상수(RATIO/MARGIN/SHADOW)로.
+4. **대량 폴더 일괄**: 폴더 전체를 순회해 한 번에 처리하려면 `run_logo_all.py` 패턴(폴더 순회 → _mosaic 우선 → _logo 출력)을 쓴다.
+
 ### 8. 최종 검토 (v3.5 신설 — QA 패스, 필수)
 본문 .md 저장 + 모자이크까지 끝낸 뒤, **완성본을 놓고 사진과 다시 대조하는 "두 번째 눈" 검토를 반드시 1회 수행한다.**
 작성하면서 본 1차 판단과 별개로, 다 만든 결과물을 검증하는 단계다. (대량 폴더 일괄 처리 시 폴더마다 수행)
@@ -258,6 +282,7 @@ python "C:\Users\MOVEAM_PC\claude-custom-agents\scripts\sort_photos.py" "<경로
 - 모자이크 결과를 검증 없이 "완료" 보고하지 말 것. 표본은 반드시 Read 검증 (번호판 영역 크롭 확인 권장).
 - **모자이크는 흰 번호판 칸에 딱 맞추는 quad(4점) 방식을 기본으로 쓸 것** (v3.5부터). 번호판보다 큰 직사각형으로 차체까지 뭉개지 말 것.
 - **최종 검토(8단계)를 생략하지 말 것** (v3.5부터 필수). 본문 작성 후 사진↔섹션 정합성·작업명·톤·순서·모자이크를 반드시 1회 재대조.
+- **로고 워터마크(7.6단계)를 생략하지 말 것** (v3.5.2부터 기본 동작). 모자이크 끝낸 최종 사진 세트에 좌상단 FERVID 로고를 `_logo\`에 합성. `_logo\` 사진이 네이버 업로드용 최종본이다.
 
 ## 출력 직후 필수
 - 사용자 전역 CLAUDE.md 규칙대로 응답 말미에 bkit Feature Usage 블록 + 추천 명령어 줄 포함
