@@ -13,9 +13,10 @@ argument-hint: <블로그 URL 또는 이미지 폴더 경로>
 3. **모든 씬에 치비 무비 등장** (작업 진행/리액션) — 단순 사진 변환 아님
 4. 치비 2-3등신 고정 + Korean webtoon, 일본 스튜디오명 금지
 5. 프롬프트 끝 AUDIO 공식 + ref `@dc42431d-bee7-42d4-bd26-852f693aecaf`, Generate Audio OFF
+6. **레퍼런스 슬롯: Slot 1 = 무비 캐릭터 시트 항상 고정 / Slot 2~ = 씬 키컷 이미지**. 모든 컷에 무비 시트 포함
 
 ## 절차 (무비.md와 동일)
-0. EP 셋업(AskUserQuestion) → 1. 소스수집(Playwright/폴더) → 2. 키컷+6씬 매핑 → 3. Seedance 영어 프롬프트(입움직임 공식·First/Last·엘리멘트·연출기법) → 4. 클로바 다인 나레이션 → 5. 업로드 패키지 → 6. Seedance설정+CapCut 안내 → 7. `docs/무비_EP[N]_[차종].md` 저장
+0. EP 셋업(AskUserQuestion) → 1. 소스수집(Playwright/폴더) → 2. 키컷+6씬 매핑 → 3. Seedance 영어 프롬프트(입움직임 공식·First/Last·엘리멘트·연출기법) → 4. 클로바 다인 나레이션 → 5. 업로드 패키지 → 6. Seedance설정+CapCut 안내 → 7. **입력 이미지 폴더에** `무비_EP[N]_[차종].md` 저장(컷별 슬롯 지정 포함). docs 폴더 아님!
 
 ## 출력 직후 필수
 사용자 전역 CLAUDE.md 규칙대로 응답 말미에 bkit Feature Usage 블록 + 추천 명령어 줄 포함.
