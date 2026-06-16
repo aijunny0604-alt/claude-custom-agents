@@ -93,6 +93,7 @@ curl -sL https://raw.githubusercontent.com/aijunny0604-alt/claude-commands/maste
 |------|:----:|:--------:|------|
 | `/pre-deploy` | O | 1인 | 배포 전 자동 체크리스트 (19항목) |
 | `/quick-fix` | O | 1인 | 빠른 버그 수정 (영향도 추적 포함) |
+| `/bug-hunt` (`/버그헌트`) | O | Codex+1 | 숨은 버그 헌트 — Codex 정적분석 + 라이브 교차검증(확정/반박), 운영DB 보호(더미+cleanup) |
 
 ### 기타
 
