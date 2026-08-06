@@ -90,3 +90,25 @@ elif mode=="tesla_ad":
         "pc":{"final":BLOG,"display":BLOG},"mobile":{"final":BLOG,"display":BLOG}}}
     st,resp=req("POST","/ncc/ads",body=ad_body)
     print("소재생성:",st, "OK" if 200<=st<300 else resp[:300])
+
+elif mode=="set_budget":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    # 성과기반 배분 (합계 49,000 ≤ 5만원)
+    rules=[("모바일",30000),("자동차 정비",8000),("구조변경",5000),("보험",2000),("무브모터스",4000)]
+    def budget_for(name):
+        if name=="모바일": return 30000
+        if name=="자동차 정비": return 8000
+        if "구조변경" in name: return 5000
+        if "보험" in name: return 2000
+        if "무브모터스" in name: return 4000   # 플레이스
+        return None
+    done=0; tot=0
+    for c in audit["campaigns"]:
+        b=budget_for(c["name"])
+        if b is None: continue
+        st,resp=req("PUT","/ncc/campaigns/"+c["id"],{"fields":"budget"},{"nccCampaignId":c["id"],"dailyBudget":b,"useDailyBudget":True})
+        ok=200<=st<300
+        print(("OK " if ok else "실패 ")+c["name"]+" → "+str(b), st, "" if ok else resp[:150])
+        if ok: done+=1; tot+=b
+        time.sleep(0.15)
+    print("일예산 설정 완료",done,"캠페인 · 합계",tot,"원/일")
