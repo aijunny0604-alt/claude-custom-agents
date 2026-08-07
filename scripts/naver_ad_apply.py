@@ -224,3 +224,22 @@ elif mode=="reinforce":
         else: print("실패",job["g"],st,resp[:100])
         time.sleep(0.3)
     print("== 인기 키워드 총 추가",grand,"==")
+
+elif mode=="setbid":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    plan=json.load(io.open("C:/tmp/setbid.json",encoding="utf-8"))
+    for p in plan:
+        gid=None
+        for c in audit["campaigns"]:
+            if c["name"]==p.get("campaign","모바일"):
+                for a in c["adgroups"]:
+                    if a["status"]=="ELIGIBLE" and a["name"].startswith(p["group"]): gid=a["id"]
+        if not gid: print("그룹없음",p["group"]); continue
+        st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":gid})
+        found=False
+        for k in (json.loads(kt) if kt.strip().startswith("[") else []):
+            if k.get("keyword")==p["keyword"]:
+                found=True
+                st,resp=req("PUT","/ncc/keywords/"+k["nccKeywordId"],{"fields":"bidAmt"},{"nccKeywordId":k["nccKeywordId"],"nccAdgroupId":gid,"bidAmt":p["bid"],"useGroupBidAmt":False})
+                print(("OK " if 200<=st<300 else "실패 ")+p["keyword"]+" → "+str(p["bid"]),st, "" if 200<=st<300 else resp[:100])
+        if not found: print("키워드없음",p["keyword"])
