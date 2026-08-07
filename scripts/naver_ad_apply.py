@@ -188,3 +188,39 @@ elif mode=="cleanup_structure":
                     else: print("  실패:",nm,st,resp[:90])
                     time.sleep(0.15)
     print("그룹 이름정리 완료",renamed,"개")
+
+elif mode=="reinforce":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    cfg=json.load(io.open("C:/tmp/reinforce_config.json",encoding="utf-8"))
+    def num(v):
+        if isinstance(v,str): v=v.replace("<","").replace(",","").strip()
+        try: return int(v)
+        except: return 0
+    grand=0
+    for job in cfg:
+        gid=None
+        for c in audit["campaigns"]:
+            if c["name"]==job.get("campaign","모바일"):
+                for a in c["adgroups"]:
+                    if a["status"]=="ELIGIBLE" and a["name"].startswith(job["g"]): gid=a["id"]
+        if not gid: print("그룹없음",job["g"]); continue
+        st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":gid})
+        try: existing=set(k["keyword"].replace(" ","") for k in json.loads(kt))
+        except: existing=set()
+        st,res=req("GET","/keywordstool",{"hintKeywords":",".join(s.replace(" ","") for s in job["seeds"][:5]),"showDetail":"1"})
+        rel=[]
+        try:
+            for r in json.loads(res).get("keywordList",[]):
+                rel.append((r.get("relKeyword"),num(r.get("monthlyPcQcCnt"))+num(r.get("monthlyMobileQcCnt")),r.get("compIdx")))
+        except: print("검색량조회 실패",job["g"],res[:80]); continue
+        toks=[t.lower() for t in job["tok"]]
+        cand=[(k,v,cp) for k,v,cp in rel if k and any(t in k.lower() for t in toks) and v>=300 and k.replace(" ","") not in existing]
+        cand=sorted(cand,key=lambda x:-x[1])[:20]
+        if not cand: print(job["g"],"인기어 추가 0(신규없음)"); continue
+        body=[{"keyword":k,"bidAmt":job.get("bid",300),"useGroupBidAmt":False} for k,_,_ in cand]
+        st,resp=req("POST","/ncc/keywords",{"nccAdgroupId":gid},body)
+        if 200<=st<300:
+            grand+=len(cand); print("OK",job["g"],"+",len(cand),"| 예:",", ".join(f"{k}({v})" for k,v,_ in cand[:5]))
+        else: print("실패",job["g"],st,resp[:100])
+        time.sleep(0.3)
+    print("== 인기 키워드 총 추가",grand,"==")
