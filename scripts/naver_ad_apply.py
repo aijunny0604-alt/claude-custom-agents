@@ -96,11 +96,11 @@ elif mode=="set_budget":
     # 성과기반 배분 (합계 49,000 ≤ 5만원)
     rules=[("모바일",30000),("자동차 정비",8000),("구조변경",5000),("보험",2000),("무브모터스",4000)]
     def budget_for(name):
-        if name=="모바일": return 30000
-        if name=="자동차 정비": return 8000
-        if "구조변경" in name: return 5000
-        if "보험" in name: return 2000
-        if "무브모터스" in name: return 4000   # 플레이스
+        if name=="모바일": return 35000
+        if name=="자동차 정비": return 9000
+        if "구조변경" in name: return 7000
+        if "보험" in name: return 4000
+        if "무브모터스" in name: return 5000   # 플레이스
         return None
     done=0; tot=0
     for c in audit["campaigns"]:
@@ -112,3 +112,58 @@ elif mode=="set_budget":
         if ok: done+=1; tot+=b
         time.sleep(0.15)
     print("일예산 설정 완료",done,"캠페인 · 합계",tot,"원/일")
+
+elif mode=="addbulk":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    cfg=json.load(io.open("C:/tmp/addbulk_config.json",encoding="utf-8"))
+    REGIONS=["부산","울산","김해","양산","창원","기장","정관","경남"]
+    grand=0
+    for job in cfg:
+        gid=None
+        for c in audit["campaigns"]:
+            if c["name"]==job["campaign"]:
+                for a in c["adgroups"]:
+                    if a["status"]=="ELIGIBLE" and a["name"].startswith(job["group"]): gid=a["id"]
+        if not gid: print("그룹없음:",job["campaign"],job["group"]); continue
+        st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":gid})
+        try: existing=set(k["keyword"].replace(" ","") for k in json.loads(kt))
+        except: existing=set()
+        cands=[]
+        for t in job["terms"]:
+            cands.append(t)
+            for r in REGIONS: cands.append(r+t)
+        new=[k for k in dict.fromkeys(cands) if k.replace(" ","") not in existing]
+        if not new: print(job["group"],"추가0(전부기존)"); continue
+        body=[{"keyword":k,"bidAmt":job.get("bid",250),"useGroupBidAmt":False} for k in new]
+        added=0
+        for i in range(0,len(body),90):
+            st,resp=req("POST","/ncc/keywords",{"nccAdgroupId":gid},body[i:i+90])
+            if 200<=st<300: added+=len(body[i:i+90])
+            else: print("  실패",job["group"],st,resp[:90])
+            time.sleep(0.2)
+        grand+=added; print("OK",job["campaign"],">",job["group"],"추가",added,"/",len(new))
+    print("== 총 추가",grand,"개 ==")
+
+elif mode=="setup_ev":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    campid=None
+    for c in audit["campaigns"]:
+        if c["name"]=="모바일": campid=c["id"]
+    grp_body={"nccCampaignId":campid,"adgroupType":"WEB_SITE","name":"전기차 튜닝 악세사리","pcChannelId":SITE_CH,"mobileChannelId":SITE_CH,
+              "bidAmt":300,"useDailyBudget":False,"useKeywordPlus":True,"keywordPlusWeight":100,"mobileNetworkBidWeight":100,"pcNetworkBidWeight":100,"targets":[]}
+    st,resp=req("POST","/ncc/adgroups",body=grp_body)
+    print("EV 그룹생성:",st)
+    if not (200<=st<300): print(resp); sys.exit(1)
+    newg=json.loads(resp)["nccAdgroupId"]; print("새 EV 그룹:",newg)
+    ad_body={"nccAdgroupId":newg,"type":"TEXT_45","ad":{
+        "headline":"{keyword:전기차튜닝} 전문점",
+        "description":"부산 기장 정관 무브모터스 전기차 튜닝 악세사리 전문점",
+        "pc":{"final":BLOG,"display":BLOG},"mobile":{"final":BLOG,"display":BLOG}}}
+    st,resp=req("POST","/ncc/ads",body=ad_body); print("EV 소재:",st,"OK" if 200<=st<300 else resp[:200])
+    ev=["전기차튜닝","전기차악세사리","전기차선쉐이드","전기차하체","전기차다운스프링","전기차휠","전기차인치업","전기차휠타이어",
+        "아이오닉5N튜닝","아이오닉N튜닝","아이오닉5튜닝","아이오닉6튜닝","EV6튜닝","EV6악세사리","테슬라튜닝","테슬라악세사리",
+        "모델Y튜닝","모델3튜닝","모델YL튜닝","아이오닉5선쉐이드","EV6선쉐이드","전기차언더커버",
+        "부산전기차튜닝","울산전기차튜닝","부산테슬라튜닝","부산아이오닉튜닝","김해전기차튜닝","양산전기차튜닝"]
+    body=[{"keyword":k,"bidAmt":300,"useGroupBidAmt":True} for k in ev]
+    st,resp=req("POST","/ncc/keywords",{"nccAdgroupId":newg},body); print("EV 키워드:",st,len(ev),"개","OK" if 200<=st<300 else resp[:200])
+    print("완료 EV그룹",newg)
