@@ -167,3 +167,24 @@ elif mode=="setup_ev":
     body=[{"keyword":k,"bidAmt":300,"useGroupBidAmt":True} for k in ev]
     st,resp=req("POST","/ncc/keywords",{"nccAdgroupId":newg},body); print("EV 키워드:",st,len(ev),"개","OK" if 200<=st<300 else resp[:200])
     print("완료 EV그룹",newg)
+
+elif mode=="cleanup_structure":
+    audit=json.load(io.open("C:/tmp/naver_ad_audit.json",encoding="utf-8"))
+    # 1) 꺼진 미러 캠페인 '자동차튜닝' 삭제
+    for c in audit["campaigns"]:
+        if c["name"]=="자동차튜닝" and c["status"]!="ELIGIBLE":
+            st,resp=req("DELETE","/ncc/campaigns/"+c["id"])
+            print("미러캠페인 삭제:",st, "OK" if 200<=st<300 else resp[:150])
+    # 2) 모바일 그룹명 타임스탬프(-1702...) 제거
+    renamed=0
+    for c in audit["campaigns"]:
+        if c["name"]=="모바일":
+            for a in c["adgroups"]:
+                nm=a["name"]
+                if "-1702" in nm:
+                    clean=nm.rsplit("-",1)[0].strip()
+                    st,resp=req("PUT","/ncc/adgroups/"+a["id"],{"fields":"name"},{"nccAdgroupId":a["id"],"name":clean})
+                    if 200<=st<300: renamed+=1; print("  이름정리:",nm,"->",clean)
+                    else: print("  실패:",nm,st,resp[:90])
+                    time.sleep(0.15)
+    print("그룹 이름정리 완료",renamed,"개")
