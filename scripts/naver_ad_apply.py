@@ -275,6 +275,16 @@ elif mode=="dupscan":
     for kw,rows in list(dups.items())[:30]:
         print("  ",kw,"→",", ".join(f"{r['grp']}({r['onoff']})" for r in rows))
 
+elif mode=="add_ext":
+    # C:/tmp/add_ext.json = {"ownerId":"grp-..","exts":[{"type":..,"adExtension":..}, ...]}
+    cfg=json.load(io.open("C:/tmp/add_ext.json",encoding="utf-8"))
+    owner=cfg["ownerId"]
+    for e in cfg["exts"]:
+        body={"ownerId":owner,"type":e["type"],"adExtension":e["adExtension"]}
+        if e.get("pcMobileType"): body["pcMobileType"]=e["pcMobileType"]
+        st,resp=req("POST","/ncc/ad-extensions",None,body)
+        print(("OK 확장추가 " if 200<=st<300 else "실패 ")+e["type"],st, "" if 200<=st<300 else resp[:200])
+
 elif mode=="deadscan":
     # 계정 전체 키워드의 90일 노출수 + 등록일 수집 (읽기전용) → 죽은키워드 판별용
     import datetime
