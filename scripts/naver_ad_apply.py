@@ -400,6 +400,40 @@ elif mode=="setbid_bulk":
         time.sleep(0.02)
     print("입찰 일괄 반영 완료: %d/%d" % (ok,len(plan)))
 
+elif mode=="grp_top3":
+    # 지정 그룹의 성과키워드(clk>0)를 3위권 예상입찰가로 상향. argv[2]=gid, argv[3]=cap(기본1500)
+    gid=sys.argv[2]; CAP=int(sys.argv[3]) if len(sys.argv)>3 else 1500
+    perf={}
+    try:
+        for r in json.load(io.open("C:/tmp/kw_dead_scan.json",encoding="utf-8")): perf[r["kw"]]=r["clk90"]
+    except: pass
+    st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":gid})
+    kws=json.loads(kt)
+    # 성과키워드: 90일 클릭>0 (또는 실데이터 없으면 노출로 판단은 생략)
+    perfk=[k for k in kws if (perf.get(k["keyword"],0) or 0)>0]
+    names=[k["keyword"] for k in perfk]
+    print("성과 키워드 %d개 3위권 예상가 조회..." % len(names))
+    estd={}
+    def est(dev,items):
+        s,r=req("POST","/estimate/average-position-bid/keyword",None,{"device":dev,"items":[{"key":it,"position":3} for it in items]})
+        if 200<=s<300:
+            for e in json.loads(r).get("estimate",[]): estd.setdefault(e.get("keyword"),{})[dev]=e.get("bid")
+    for i in range(0,len(names),80):
+        est("PC",names[i:i+80]); est("MOBILE",names[i:i+80]); time.sleep(0.1)
+    done=0
+    for k in perfk:
+        kw=k["keyword"]; cur=k["bidAmt"]; d=estd.get(kw,{})
+        vals=[v for v in (d.get("PC"),d.get("MOBILE")) if v]
+        if not vals: continue
+        new=max(cur,min(CAP,round(sum(vals)/len(vals))))
+        new=int(round(new/10.0))*10   # 네이버 입찰가 10원 단위
+        if new<=cur: continue
+        s,r=req("PUT","/ncc/keywords/"+k["nccKeywordId"],{"fields":"bidAmt"},{"nccKeywordId":k["nccKeywordId"],"nccAdgroupId":gid,"bidAmt":new,"useGroupBidAmt":False})
+        if 200<=s<300: done+=1; print("  OK %s %d→%d (PC%s/모%s)"%(kw,cur,new,d.get("PC"),d.get("MOBILE")))
+        else: print("  실패 %s %s"%(kw,r[:60]))
+        time.sleep(0.03)
+    print("완료: %d개 3위권 상향" % done)
+
 elif mode=="bid_estimate":
     # bid_opt.json의 성과키워드(clk>0)에 대해 PC/모바일 위치별 예상입찰가 배치조회 → bid_est.json
     rows=json.load(io.open("C:/tmp/bid_opt.json",encoding="utf-8"))
