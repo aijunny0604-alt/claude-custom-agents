@@ -255,3 +255,62 @@ elif mode=="enable_ad":
             st2,resp=req("PUT","/ncc/ads/"+aid,{"fields":"userLock"},{"nccAdId":aid,"nccAdgroupId":gid,"userLock":False})
             print(("OK 소재켬 " if 200<=st2<300 else "실패 ")+aid,st2, "" if 200<=st2<300 else resp[:150])
     print("완료: enable_ad", gid)
+
+elif mode=="dupscan":
+    # 계정 전체에서 여러 그룹에 중복 등록된 키워드를 찾아 리포트 (읽기 전용)
+    st,ct=req("GET","/ncc/campaigns"); camps=json.loads(ct)
+    from collections import defaultdict
+    seen=defaultdict(list)
+    for c in camps:
+        st,gt=req("GET","/ncc/adgroups",{"nccCampaignId":c["nccCampaignId"]})
+        for g in (json.loads(gt) if gt.strip().startswith("[") else []):
+            st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":g["nccAdgroupId"]})
+            for k in (json.loads(kt) if kt.strip().startswith("[") else []):
+                onoff="ON" if (k.get("userLock")==False and k.get("status")=="ELIGIBLE") else "OFF"
+                seen[k.get("keyword")].append({"id":k["nccKeywordId"],"camp":c.get("name"),"grp":g.get("name"),"onoff":onoff,"bid":k.get("bidAmt"),"status":k.get("status")})
+    dups={kw:rows for kw,rows in seen.items() if len(rows)>1}
+    out={"total_keywords":len(seen),"dup_count":len(dups),"dups":dups}
+    io.open("C:/tmp/ad_dupscan.json","w",encoding="utf-8").write(json.dumps(out,ensure_ascii=False,indent=1))
+    print(f"전체 고유 키워드 {len(seen)} / 중복 키워드 {len(dups)}종 → C:/tmp/ad_dupscan.json")
+    for kw,rows in list(dups.items())[:30]:
+        print("  ",kw,"→",", ".join(f"{r['grp']}({r['onoff']})" for r in rows))
+
+elif mode=="deadscan":
+    # 계정 전체 키워드의 90일 노출수 + 등록일 수집 (읽기전용) → 죽은키워드 판별용
+    import datetime
+    st,ct=req("GET","/ncc/campaigns"); camps=json.loads(ct)
+    rows=[]; n=0
+    for c in camps:
+        st,gt=req("GET","/ncc/adgroups",{"nccCampaignId":c["nccCampaignId"]})
+        for g in (json.loads(gt) if gt.strip().startswith("[") else []):
+            st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":g["nccAdgroupId"]})
+            kws=json.loads(kt) if kt.strip().startswith("[") else []
+            for k in kws:
+                kid=k["nccKeywordId"]
+                st2,stt=req("GET","/stats",{"id":kid,"fields":json.dumps(["impCnt","clkCnt"]),"datePreset":"last90days"})
+                imp=0;clk=0
+                try:
+                    dd=json.loads(stt).get("data") or []
+                    imp=sum(x.get("impCnt",0) or 0 for x in dd); clk=sum(x.get("clkCnt",0) or 0 for x in dd)
+                except: pass
+                rows.append({"id":kid,"kw":k.get("keyword"),"camp":c.get("name"),"grp":g.get("name"),
+                             "regTm":k.get("regTm"),"status":k.get("status"),"userLock":k.get("userLock"),
+                             "bid":k.get("bidAmt"),"imp90":imp,"clk90":clk})
+                n+=1
+                if n%200==0:
+                    io.open("C:/tmp/kw_dead_scan.json","w",encoding="utf-8").write(json.dumps(rows,ensure_ascii=False))
+                    print(f"  ...{n}개 스캔",flush=True)
+                time.sleep(0.03)
+    io.open("C:/tmp/kw_dead_scan.json","w",encoding="utf-8").write(json.dumps(rows,ensure_ascii=False))
+    dead=[r for r in rows if r["imp90"]==0]
+    print(f"완료: 총 {n}개 스캔 / 90일 노출0(죽음) {len(dead)}개 → C:/tmp/kw_dead_scan.json")
+
+elif mode=="delkw":
+    # C:/tmp/delkw.json = 삭제할 nccKeywordId 배열. (중복 정리용)
+    ids=json.load(io.open("C:/tmp/delkw.json",encoding="utf-8"))
+    print("삭제 대상 키워드",len(ids))
+    for i in range(0,len(ids),10):
+        st,body=req("DELETE","/ncc/keywords",{"ids":",".join(ids[i:i+10])})
+        print(("OK " if 200<=st<300 else "실패 ")+str(ids[i:i+10]),st, "" if 200<=st<300 else body[:120])
+        time.sleep(0.2)
+    print("완료: delkw")
