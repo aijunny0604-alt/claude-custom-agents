@@ -315,6 +315,20 @@ elif mode=="deadscan":
     dead=[r for r in rows if r["imp90"]==0]
     print(f"완료: 총 {n}개 스캔 / 90일 노출0(죽음) {len(dead)}개 → C:/tmp/kw_dead_scan.json")
 
+elif mode=="dead_del_list":
+    # kw_dead_scan.json에서 삭제대상(90일 노출0 AND cutoff 이전 등록) → delkw.json 생성 (읽기+파일쓰기, API호출 없음)
+    cutoff=sys.argv[2] if len(sys.argv)>2 else "2026-08"
+    rows=json.load(io.open("C:/tmp/kw_dead_scan.json",encoding="utf-8"))
+    targets=[r for r in rows if r["imp90"]==0 and (r.get("regTm") or "")[:7] < cutoff]
+    ids=[r["id"] for r in targets]
+    io.open("C:/tmp/delkw.json","w",encoding="utf-8").write(json.dumps(ids,ensure_ascii=False))
+    protect=[r for r in rows if r["imp90"]==0 and (r.get("regTm") or "")[:7]>=cutoff]
+    print(f"삭제대상(죽음+{cutoff}이전): {len(ids)}개 / 보호(최근): {len(protect)}개 / 남는 키워드: {len(rows)-len(ids)}개")
+    from collections import defaultdict
+    g=defaultdict(int)
+    for r in targets: g[r['grp']]+=1
+    for grp,nn in sorted(g.items(),key=lambda x:-x[1])[:12]: print(f"  {grp[:20]:<21} {nn}개")
+
 elif mode=="delkw":
     # C:/tmp/delkw.json = 삭제할 nccKeywordId 배열. (중복 정리용)
     ids=json.load(io.open("C:/tmp/delkw.json",encoding="utf-8"))
