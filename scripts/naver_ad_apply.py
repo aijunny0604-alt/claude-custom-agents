@@ -243,3 +243,15 @@ elif mode=="setbid":
                 st,resp=req("PUT","/ncc/keywords/"+k["nccKeywordId"],{"fields":"bidAmt"},{"nccKeywordId":k["nccKeywordId"],"nccAdgroupId":gid,"bidAmt":p["bid"],"useGroupBidAmt":False})
                 print(("OK " if 200<=st<300 else "실패 ")+p["keyword"]+" → "+str(p["bid"]),st, "" if 200<=st<300 else resp[:100])
         if not found: print("키워드없음",p["keyword"])
+
+elif mode=="enable_ad":
+    # 지정 그룹의 PAUSED 소재를 모두 ELIGIBLE로 켠다 (userLock 해제)
+    gid=sys.argv[2] if len(sys.argv)>2 else "grp-a001-01-000000039420456"
+    st,at=req("GET","/ncc/ads",{"nccAdgroupId":gid})
+    ads=json.loads(at) if at.strip().startswith("[") else []
+    for a in ads:
+        if a.get("status")=="PAUSED" or a.get("userLock")==True:
+            aid=a["nccAdId"]
+            st2,resp=req("PUT","/ncc/ads/"+aid,{"fields":"userLock"},{"nccAdId":aid,"nccAdgroupId":gid,"userLock":False})
+            print(("OK 소재켬 " if 200<=st2<300 else "실패 ")+aid,st2, "" if 200<=st2<300 else resp[:150])
+    print("완료: enable_ad", gid)
