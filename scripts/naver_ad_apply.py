@@ -338,6 +338,117 @@ elif mode=="deadscan":
     dead=[r for r in rows if r["imp90"]==0]
     print(f"완료: 총 {n}개 스캔 / 90일 노출0(죽음) {len(dead)}개 → C:/tmp/kw_dead_scan.json")
 
+elif mode=="bid_optimize":
+    # bid_opt.json + bid_est.json → 최적 입찰 계획(C:/tmp/setbid_bulk.json). 적용 안 함(계산+요약만).
+    rows=json.load(io.open("C:/tmp/bid_opt.json",encoding="utf-8"))
+    est=json.load(io.open("C:/tmp/bid_est.json",encoding="utf-8"))
+    FLOOR=70; CAP=600; KEEP={"부산배기튜닝"}  # 사용자 지정 보존, 가성비 상한 600
+    plan=[]; raise_n=lower_n=0
+    for r in rows:
+        kw=r["kw"]; cur=r.get("bid") or 0; imp=r.get("imp90") or 0; clk=r.get("clk90") or 0
+        if kw in KEEP: continue
+        new=cur
+        if clk>0 and kw in est:
+            pc=est[kw].get("PC") or 0; mo=est[kw].get("MOBILE") or 0
+            vals=[v for v in (pc,mo) if v]
+            if vals:
+                target=round(sum(vals)/len(vals))       # PC·모바일 3위 평균
+                new=max(FLOOR,min(CAP,target))
+        elif imp>0 and clk==0:
+            # 노출되는데 클릭0 = 낭비 → 낮춤(현재의 60%, 하한 100)
+            new=max(100,round(cur*0.6)) if cur>200 else cur
+        else:
+            # 노출0 = 최소 유지
+            new=cur if cur<=150 else 150
+        if abs(new-cur)>=20:
+            plan.append({"id":r["id"],"kw":kw,"grp":r["grp"],"old":cur,"new":new})
+            if new>cur: raise_n+=1
+            else: lower_n+=1
+    io.open("C:/tmp/setbid_bulk.json","w",encoding="utf-8").write(json.dumps(plan,ensure_ascii=False))
+    print("입찰 최적화 계획: %d건 변경 (상향 %d / 하향 %d) → C:/tmp/setbid_bulk.json" % (len(plan),raise_n,lower_n))
+    ups=[p for p in plan if p["new"]>p["old"]][:6]; dns=[p for p in plan if p["new"]<p["old"]][:6]
+    print("상향 예시:"); [print("  %s %d→%d" % (p["kw"],p["old"],p["new"])) for p in ups]
+    print("하향 예시:"); [print("  %s %d→%d" % (p["kw"],p["old"],p["new"])) for p in dns]
+
+elif mode=="setbid_bulk":
+    # setbid_bulk.json의 {id,new}를 PUT으로 일괄 반영
+    plan=json.load(io.open("C:/tmp/setbid_bulk.json",encoding="utf-8"))
+    print("입찰 일괄 반영:",len(plan),"건")
+    ok=0
+    for p in plan:
+        # 키워드의 그룹id 필요 → GET로 조회 없이 bid_opt에서 매핑
+        pass
+    # bid_opt.json에서 id→grp 매핑
+    rows={r["id"]:r for r in json.load(io.open("C:/tmp/bid_opt.json",encoding="utf-8"))}
+    gidmap={}
+    st,ct=req("GET","/ncc/campaigns")
+    for c in json.loads(ct):
+        st,gt=req("GET","/ncc/adgroups",{"nccCampaignId":c["nccCampaignId"]})
+        for g in (json.loads(gt) if gt.strip().startswith("[") else []): gidmap[g["name"]]=g["nccAdgroupId"]
+    for p in plan:
+        r=rows.get(p["id"]);
+        if not r: continue
+        gid=gidmap.get(r["grp"])
+        if not gid: continue
+        st2,resp=req("PUT","/ncc/keywords/"+p["id"],{"fields":"bidAmt"},{"nccKeywordId":p["id"],"nccAdgroupId":gid,"bidAmt":p["new"],"useGroupBidAmt":False})
+        if 200<=st2<300: ok+=1
+        else:
+            if ok<3: print("실패",p["kw"],st2,resp[:80])
+        if ok%100==0 and ok>0: print("  ...%d건 반영"%ok,flush=True)
+        time.sleep(0.02)
+    print("입찰 일괄 반영 완료: %d/%d" % (ok,len(plan)))
+
+elif mode=="bid_estimate":
+    # bid_opt.json의 성과키워드(clk>0)에 대해 PC/모바일 위치별 예상입찰가 배치조회 → bid_est.json
+    rows=json.load(io.open("C:/tmp/bid_opt.json",encoding="utf-8"))
+    perf=[r for r in rows if (r["clk90"] or 0)>0]
+    pos=int(sys.argv[2]) if len(sys.argv)>2 else 3
+    out={}
+    def est(device, items):
+        body={"device":device,"items":[{"key":it,"position":pos} for it in items]}
+        st,resp=req("POST","/estimate/average-position-bid/keyword",None,body)
+        if 200<=st<300:
+            try:
+                for e in json.loads(resp).get("estimate",[]):
+                    out.setdefault(e.get("keyword"),{})[device]=e.get("bid")
+            except: pass
+        else:
+            print("est실패",device,st,resp[:100])
+    kws=[r["kw"] for r in perf]
+    for i in range(0,len(kws),80):
+        chunk=kws[i:i+80]
+        est("PC",chunk); est("MOBILE",chunk); time.sleep(0.1)
+    io.open("C:/tmp/bid_est.json","w",encoding="utf-8").write(json.dumps(out,ensure_ascii=False))
+    print("예상입찰 조회 완료: %d개 키워드 (position %d) → C:/tmp/bid_est.json" % (len(out),pos))
+    ex=list(out.items())[:5]
+    for kw,d in ex: print("  %s: PC %s / 모바일 %s" % (kw,d.get("PC"),d.get("MOBILE")))
+
+elif mode=="bid_scan":
+    # 현재 전 키워드의 bid + 그룹 PC/모바일 가중치 수집 → kw_dead_scan 성과와 병합 → C:/tmp/bid_opt.json
+    perf={}
+    try:
+        for r in json.load(io.open("C:/tmp/kw_dead_scan.json",encoding="utf-8")): perf[r["id"]]=(r["imp90"],r["clk90"])
+    except: pass
+    st,ct=req("GET","/ncc/campaigns"); camps=json.loads(ct)
+    rows=[]
+    for c in camps:
+        if c.get("status")!="ELIGIBLE": continue
+        st,gt=req("GET","/ncc/adgroups",{"nccCampaignId":c["nccCampaignId"]})
+        for g in (json.loads(gt) if gt.strip().startswith("[") else []):
+            pcw=g.get("pcNetworkBidWeight",100); mow=g.get("mobileNetworkBidWeight",100)
+            st,kt=req("GET","/ncc/keywords",{"nccAdgroupId":g["nccAdgroupId"]})
+            for k in (json.loads(kt) if kt.strip().startswith("[") else []):
+                imp,clk=perf.get(k["nccKeywordId"],(None,None))
+                rows.append({"id":k["nccKeywordId"],"kw":k.get("keyword"),"camp":c.get("name"),"grp":g.get("name"),
+                             "bid":k.get("bidAmt"),"useGrpBid":k.get("useGroupBidAmt"),"pcw":pcw,"mow":mow,"imp90":imp,"clk90":clk})
+    io.open("C:/tmp/bid_opt.json","w",encoding="utf-8").write(json.dumps(rows,ensure_ascii=False))
+    perfk=[r for r in rows if (r["clk90"] or 0)>0]
+    impk=[r for r in rows if (r["imp90"] or 0)>0 and (r["clk90"] or 0)==0]
+    deadk=[r for r in rows if (r["imp90"] or 0)==0]
+    print("전 키워드 %d → 클릭有(성과)%d / 노출만(클릭0)%d / 죽음(노출0)%d" % (len(rows),len(perfk),len(impk),len(deadk)))
+    wts=sorted(set("%s(pc%s/mo%s)"%(r["grp"][:8],r["pcw"],r["mow"]) for r in rows))
+    print("C:/tmp/bid_opt.json 저장. 그룹 PC/모바일 가중치: "+", ".join(wts[:8]))
+
 elif mode=="dead_del_list":
     # kw_dead_scan.json에서 삭제대상(90일 노출0 AND cutoff 이전 등록) → delkw.json 생성 (읽기+파일쓰기, API호출 없음)
     cutoff=sys.argv[2] if len(sys.argv)>2 else "2026-08"
