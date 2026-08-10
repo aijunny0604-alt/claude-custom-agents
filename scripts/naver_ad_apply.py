@@ -285,6 +285,17 @@ elif mode=="add_ext":
         st,resp=req("POST","/ncc/ad-extensions",None,body)
         print(("OK 확장추가 " if 200<=st<300 else "실패 ")+e["type"],st, "" if 200<=st<300 else resp[:200])
 
+elif mode=="set_delivery":
+    # 모든 ELIGIBLE 캠페인의 예산배분을 ACCELERATED(조기소진=계속 노출)로 변경. 균등배분(STANDARD) 해제.
+    st,ct=req("GET","/ncc/campaigns"); camps=json.loads(ct)
+    for c in camps:
+        if c.get("deliveryMethod")=="ACCELERATED":
+            print("이미 조기소진:",c["name"]); continue
+        c["deliveryMethod"]="ACCELERATED"
+        st2,resp=req("PUT","/ncc/campaigns/"+c["nccCampaignId"],{"fields":"budget"},c)
+        print(("OK 균등배분해제 " if 200<=st2<300 else "실패 ")+c["name"],st2, "" if 200<=st2<300 else resp[:200])
+    print("완료: set_delivery(ACCELERATED)")
+
 elif mode=="del_ext":
     # 지정 그룹의 확장소재 전부 삭제 (검수중이라 노출 막을 때 원복용). ownerId=argv[2]
     owner=sys.argv[2] if len(sys.argv)>2 else "grp-a001-01-000000071372927"
