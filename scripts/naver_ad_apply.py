@@ -285,6 +285,18 @@ elif mode=="add_ext":
         st,resp=req("POST","/ncc/ad-extensions",None,body)
         print(("OK 확장추가 " if 200<=st<300 else "실패 ")+e["type"],st, "" if 200<=st<300 else resp[:200])
 
+elif mode=="del_ext":
+    # 지정 그룹의 확장소재 전부 삭제 (검수중이라 노출 막을 때 원복용). ownerId=argv[2]
+    owner=sys.argv[2] if len(sys.argv)>2 else "grp-a001-01-000000071372927"
+    st,et=req("GET","/ncc/ad-extensions",{"ownerId":owner})
+    exts=json.loads(et) if et.strip().startswith("[") else []
+    for e in exts:
+        eid=e.get("nccAdExtensionId")
+        if not eid: print("id없음",e.get("type")); continue
+        st2,resp=req("DELETE","/ncc/ad-extensions",{"ids":eid})
+        print(("OK 확장삭제 " if 200<=st2<300 else "실패 ")+str(e.get("type")),st2, "" if 200<=st2<300 else resp[:120])
+    print("완료: del_ext", owner)
+
 elif mode=="deadscan":
     # 계정 전체 키워드의 90일 노출수 + 등록일 수집 (읽기전용) → 죽은키워드 판별용
     import datetime
