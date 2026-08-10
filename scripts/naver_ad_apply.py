@@ -287,7 +287,7 @@ elif mode=="deadscan":
             kws=json.loads(kt) if kt.strip().startswith("[") else []
             for k in kws:
                 kid=k["nccKeywordId"]
-                st2,stt=req("GET","/stats",{"id":kid,"fields":json.dumps(["impCnt","clkCnt"]),"datePreset":"last90days"})
+                st2,stt=req("GET","/stats",{"id":kid,"fields":json.dumps(["impCnt","clkCnt"]),"timeRange":json.dumps({"since":"2026-05-12","until":"2026-08-10"})})
                 imp=0;clk=0
                 try:
                     dd=json.loads(stt).get("data") or []
