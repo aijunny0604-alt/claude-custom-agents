@@ -342,18 +342,20 @@ elif mode=="bid_optimize":
     # bid_opt.json + bid_est.json → 최적 입찰 계획(C:/tmp/setbid_bulk.json). 적용 안 함(계산+요약만).
     rows=json.load(io.open("C:/tmp/bid_opt.json",encoding="utf-8"))
     est=json.load(io.open("C:/tmp/bid_est.json",encoding="utf-8"))
-    FLOOR=70; CAP=600; KEEP={"부산배기튜닝"}  # 사용자 지정 보존, 가성비 상한 600
+    FLOOR=70; CAP=int(sys.argv[2]) if len(sys.argv)>2 else 600; KEEP={"부산배기튜닝"}  # CAP 인자로 조정
     plan=[]; raise_n=lower_n=0
     for r in rows:
         kw=r["kw"]; cur=r.get("bid") or 0; imp=r.get("imp90") or 0; clk=r.get("clk90") or 0
         if kw in KEEP: continue
         new=cur
-        if clk>0 and kw in est:
-            pc=est[kw].get("PC") or 0; mo=est[kw].get("MOBILE") or 0
-            vals=[v for v in (pc,mo) if v]
-            if vals:
-                target=round(sum(vals)/len(vals))       # PC·모바일 3위 평균
-                new=max(FLOOR,min(CAP,target))
+        if clk>0:
+            if kw in est:
+                pc=est[kw].get("PC") or 0; mo=est[kw].get("MOBILE") or 0
+                vals=[v for v in (pc,mo) if v]
+                target=round(sum(vals)/len(vals)) if vals else max(cur,CAP)
+            else:
+                target=CAP     # 성과키워드인데 예상가 없으면 상한으로 (상위노출 확보)
+            new=max(FLOOR,min(CAP,max(target, cur)))     # 성과키워드는 현재보다 낮추지 않음
         elif imp>0 and clk==0:
             # 노출되는데 클릭0 = 낭비 → 낮춤(현재의 60%, 하한 100)
             new=max(100,round(cur*0.6)) if cur>200 else cur
