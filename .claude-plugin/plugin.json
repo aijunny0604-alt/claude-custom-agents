@@ -1,7 +1,7 @@
 {
   "name": "j-agents",
-  "version": "1.8.0",
-  "description": "J AGENTS - 26개 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트 팩 + Playwright 직접 검증 + 끝판왕 오케스트레이터",
+  "version": "1.9.0",
+  "description": "J AGENTS - 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트 팩 + Playwright 직접 검증 + 끝판왕 오케스트레이터 + 네이버 검색광고 진단·최적화 + 블로그 자동화",
   "skills": [
     "skills/app-plan.md",
     "skills/change-verify.md",
@@ -29,6 +29,12 @@
     "skills/끝판왕.md",
     "skills/update.md",
     "skills/help.md",
+    "skills/검색광고점검.md",
+    "skills/네이버키워드.md",
+    "skills/무브모터스블로그.md",
+    "skills/팀퍼비드블로그.md",
+    "skills/블로그검토.md",
+    "skills/module-capture.md",
     "skills/README.md"
   ],
   "memory": [
