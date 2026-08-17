@@ -1,6 +1,6 @@
 {
   "name": "j-agents",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "J AGENTS - 커스텀 QA/보안/테스트/검증/기획/디자인 에이전트 팩 + Playwright 직접 검증 + 끝판왕 오케스트레이터 + 네이버 검색광고 진단·최적화 + 블로그 자동화",
   "skills": [
     "skills/app-plan.md",
