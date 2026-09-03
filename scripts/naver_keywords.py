@@ -9,7 +9,9 @@ import urllib.request, urllib.parse, urllib.error
 
 CFG = os.path.join(os.path.expanduser("~"), ".secrets", "naver_searchad.json")
 BASE = "https://api.searchad.naver.com"
-OUT = "C:/tmp/naver_kw_result.json"
+# 출력 경로: 환경변수 NAVER_KW_OUT > 기본값. 🚨 병렬 실행(에이전트 여러 개) 시
+# 기본 경로를 서로 덮어쓰므로 각자 고유 경로를 NAVER_KW_OUT 로 지정할 것.
+OUT = os.environ.get("NAVER_KW_OUT") or "C:/tmp/naver_kw_result.json"
 
 def load():
     with open(CFG, encoding="utf-8") as f:
